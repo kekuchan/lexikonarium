@@ -1,1 +1,2196 @@
+/*
+Copyright (c) 2022 Lexikonarium contributors
 
+Redistribution and use in source and binary forms,
+with or without modification, are permitted
+provided that the following conditions are met:
+
+1. Redistributions of source code must
+retain the above copyright notice, this list
+of conditions and the following disclaimer.
+
+2. Redistributions in binary form must
+reproduce the above copyright notice,
+this list of conditions and the following
+disclaimer in the documentation and/or other
+materials provided with the distribution.
+
+Subject to the terms and conditions of this
+license, each copyright holder and contributor
+hereby grants to those receiving rights under this
+license a perpetual, worldwide, non-exclusive,
+no-charge, royalty-free, irrevocable (except for
+failure to satisfy the conditions of this license)
+patent license to make, have made, use, offer to
+sell, sell, import, and otherwise transfer this
+software, where such license applies only to
+those patent claims, already acquired or hereafter
+acquired, licensable by such copyright holder or
+contributor that are necessarily infringed by:
+
+(a) their Contribution(s) (the licensed
+copyrights of copyright holders and
+non-copyrightable additions of contributors,
+in source or binary form) alone; or
+
+(b) combination of their Contribution(s)
+with the work of authorship to which such
+Contribution(s) was added by such copyright
+holder or contributor, if, at the time the
+Contribution is added, such addition causes
+such combination to be necessarily infringed.
+The patent license shall not apply to any other
+combinations which include the Contribution.
+
+Except as expressly stated above, no rights or
+licenses from any copyright holder or contributor
+is granted under this license, whether expressly,
+by implication, estoppel or otherwise.
+
+DISCLAIMER
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
+AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+Includes code using the same license,
+from the SWARMBJECT development environment:
+Copyright (c) 2021-2022 SWARMBJECT contributors
+*/
+class Main {
+	
+	std::bom::Window appWindow;
+	std::dom::Node body;
+	std::dom::Node document;
+	
+	std::dom::Node lookupContainer;
+	std::dom::Node meaningsContainer;
+	std::dom::Node textContainer;
+	std::dom::Node buttonsContainer;
+	std::dom::Node menuContainer;
+	std::dom::Node container;
+	std::dom::Node entryContainer;
+	std::dom::Node currentEntry;
+	
+	std::ds::BalBinTree dictionaries;
+	std::ds::BalBinTree expressions;
+	std::ds::BalBinTree meanings;
+	
+	std::ds::Buffer buffer;
+	/*Since the indices start from 1, these 
+	actually point before the first element.*/
+	unsigned int meaning;
+	unsigned int expression;
+	
+	unsigned int longestExpression;
+	
+	std::str::DString loadSavePath;
+	std::str::DString comment;
+	std::str::DString buttons;
+	std::str::DString buttonString;
+	
+	unsigned char constexpr findMax = 100;
+	Entry* nextEntry;
+
+	static void addButton(std::dom::Node* document,
+		std::dom::Node* element,
+		unsigned char[] text,
+		unsigned int start,
+		unsigned int length,
+		std::dom::Node* container){
+		std::html::InputElement::create(
+			document, element);
+		std::css::Declaration style;
+		std::html::Element::getStyle(element, &style);
+		std::css::Short len;
+		std::css::Keyword keyword;
+		style.setFontSize(len.set(
+			30, std::css::Units::px));
+		style.setPaddingBottom(len.set(
+			0, std::css::Units::px));
+		style.setPaddingTop(&len);
+		style.setMargin(&len);
+		style.setBorderWidth(len.set(
+			1, std::css::Units::px));
+		style.setBorderStyle(keyword.set(
+			std::css::BorderStyles::solid));
+		std::html::InputElement::setType(
+			element, std::html::InputTypes::button);
+		std::html::InputElement::setValue(
+			element, text, start, length);
+		container->appendChild(element);
+	}
+	
+	static void addLog(std::dom::Node* document,
+		std::dom::Node* element,
+		std::dom::Node* container,
+		std::css::Declaration* style,
+		std::css::Short* len){
+		std::html::DivElement::create(
+			document, element);
+		std::html::Element::getStyle(element, style);
+		style->setFontSize(len->set(
+			12, std::css::Units::px));
+		style->setMarginTop(len->set(
+			0, std::css::Units::px));
+		container->appendChild(element);
+	}
+	
+	static void addEntry(std::dom::Node* document,
+		std::dom::Node* element,
+		std::dom::Node* textNode,
+		Entry* entry,
+		std::dom::Node* container,
+		std::css::Declaration* style,
+		std::css::Keyword* keyword,
+		std::css::Short* len){
+		addRow(document, element, textNode, "(", 
+			container, style, keyword, len);
+		std::str::String* text = 
+			&entry->dictionary->name;
+		std::dom::Text::create(document, textNode,
+			text->data, 0, text->length);
+		element->appendChild(textNode);
+		std::dom::Text::create(document, textNode,
+			") ", 0, 2);
+		element->appendChild(textNode);
+		text = &entry->expression->name;
+		std::dom::Text::create(document, textNode,
+			text->data, 0, text->length);
+		element->appendChild(textNode);
+		std::dom::Text::create(document, textNode,
+			" : ", 0, 3);
+		element->appendChild(textNode);
+		text = &entry->meaning->name;
+		std::dom::Text::create(document, textNode,
+			text->data, 0, text->length);
+		element->appendChild(textNode);
+	}
+	
+	void addEntryText(
+		std::str::DString* text,
+		std::str::View* dictionary,
+		std::str::View* expression,
+		std::str::View* meaning,
+		std::dom::Node* node){
+		getEntryText(text, dictionary, 
+			expression, meaning);
+		addText(&document, &meaningsContainer, 
+			node, text->data, text->length);
+	}
+
+	static void addRow(std::dom::Node* document,
+		std::dom::Node* element,
+		std::dom::Node* textNode,
+		unsigned char[] text,
+		std::dom::Node* container,
+		std::css::Declaration* style,
+		std::css::Keyword* keyword,
+		std::css::Short* len){
+		std::html::DivElement::create(
+			document, element);
+		std::dom::Text::create(document, textNode,
+			text, 0, std::str::CString::length(text, 0));
+		element->appendChild(textNode);
+		std::html::Element::getStyle(element, style);
+		style->setMarginLeft(keyword->set(
+			std::css::MarginTypes::auto));
+		style->setMarginRight(keyword);
+		style->setMarginTop(len->set(
+			0, std::css::Units::px));
+		style->setMarginBottom(len);
+		style->setBorderBottomWidth(len->set(
+			1, std::css::Units::px));
+		style->setBorderBottomStyle(keyword->set(
+			std::css::BorderStyles::solid));
+		container->appendChild(element);
+	}
+	
+	static void addRowClick(std::dom::Node* document,
+		std::dom::Node* element,
+		std::dom::Node* textNode,
+		unsigned char[] text,
+		std::dom::Node* container,
+		std::css::Declaration* style,
+		std::css::Keyword* keyword,
+		std::css::Short* len,
+		void(std::dom::Event*,
+			std::ApplicationInstance) onClick){
+		addRow(document, element, textNode, text, 
+			container, style, keyword, len);
+		std::dom::MouseEvent::setOnClick(
+			element, onClick);
+	}
+	
+	static void addText(
+		std::dom::Node* document, 
+		std::dom::Node* container,
+		std::dom::Node* node,
+		unsigned char[] text,
+		unsigned int len){
+		std::dom::Text::create(document,
+			node, text, 0, len);
+		container->appendChild(node);
+		std::html::BrElement::create(
+			document, node);
+		container->appendChild(node);
+	}
+	
+	static void brToCaret(std::dom::Range* range,
+		std::dom::Node* document){
+		std::dom::Node node;
+		range->getStartContainer(&node);
+		unsigned int offset = range->getStartOffset();
+		std::dom::Node br;
+		std::html::BrElement::create(document, &br);
+		std::dom::Node sibling;
+		if (node.getNodeType() == std::dom::NodeTypes::text){
+			std::dom::Node parent;
+			node.getParentNode(&parent);
+			if (offset == 0){
+				parent.insertBefore(&br, &node);
+			} else {
+				unsigned int len =
+					std::dom::CharacterData::getLength(&node);
+				if (offset < len){
+					std::dom::Text::splitText(
+						&node, offset);
+				}
+				node.getNextSibling(&sibling);
+				parent.insertBefore(&br, &sibling);
+			}
+		} else {
+			unsigned int len = node.getChildNodesLength();
+			if (offset < len){
+				node.getChildNode(&sibling, offset);
+				node.insertBefore(&br, &sibling);
+			} else {
+				node.appendChild(&br);
+			}
+		}
+		br.getNextSibling(&sibling);
+		if (sibling.getNodeType() != std::dom::NodeTypes::text){
+			/* Empty text node is inserted for easier referencing. */
+			br.getParentNode(&node);
+			std::dom::Node text;
+			std::dom::Text::create(
+				document, &text, nullptr, 0, 0);
+			node.insertBefore(&text, &sibling);
+			br.getNextSibling(&sibling);
+		}
+		range->setStart(&sibling, 0);
+		range->setEnd(&sibling, 0);
+	}
+	
+	static void createContainer(
+		std::dom::Node* document,
+		std::dom::Node* container,
+		std::css::Declaration* style,
+		std::css::Keyword* keyword,
+		std::css::Short* len){
+		std::html::DivElement::create(
+			document, container);
+		std::html::Element::getStyle(
+			container, style);
+		style->setTextAlign(keyword->set(
+			std::css::TextAlignTypes::center));
+		style->setFontSize(len->set(
+			30, std::css::Units::px));
+	}
+
+	void doPaste(std::str::DString* string){
+		std::dom::Selection selection;
+		appWindow.getSelection(&selection);
+		std::dom::Range range;
+		selection.getRangeAt(&range, 0);
+		/* To remove flickering on mobile and 
+			caret display recalculations. */
+		selection.removeAllRanges();
+		std::css::Declaration style;
+		std::html::Element::getStyle(
+			&textContainer, &style);
+		std::css::Keyword keyword;
+		/* To increase performance. */
+		style.setDisplay(keyword.set(
+			std::css::DisplayTypes::none));
+		range.deleteContents();
+		stringToRange(string, &range, &document);
+		style.setDisplay(keyword.set(
+			std::css::DisplayTypes::block));
+		selection.addRange(&range);
+	}
+
+	static void getEntryText(
+		std::str::DString* text,
+		std::str::View* dictionary,
+		std::str::View* expression,
+		std::str::View* meaning){
+		text->clear();
+		text->push('(');
+		text->addView(dictionary);
+		text->add(") ", 0, 2);
+		text->addView(expression);
+		text->add(" : ", 0, 3);
+		text->addView(meaning);
+	}
+
+	static unsigned char[] getLicense(){
+		return
+			"Copyright (c) 2022 Lexikonarium contributors\n"
+			"\n"
+			"Redistribution and use in source and binary forms, "
+			"with or without modification, are permitted "
+			"provided that the following conditions are met:\n"
+			"\n"
+			"1. Redistributions of source code must "
+			"retain the above copyright notice, this list "
+			"of conditions and the following disclaimer.\n"
+			"\n"
+			"2. Redistributions in binary form must "
+			"reproduce the above copyright notice, "
+			"this list of conditions and the following "
+			"disclaimer in the documentation and/or other "
+			"materials provided with the distribution.\n"
+			"\n"
+			"Subject to the terms and conditions of this "
+			"license, each copyright holder and contributor "
+			"hereby grants to those receiving rights under this "
+			"license a perpetual, worldwide, non-exclusive, "
+			"no-charge, royalty-free, irrevocable (except for "
+			"failure to satisfy the conditions of this license) "
+			"patent license to make, have made, use, offer to "
+			"sell, sell, import, and otherwise transfer this "
+			"software, where such license applies only to "
+			"those patent claims, already acquired or hereafter "
+			"acquired, licensable by such copyright holder or "
+			"contributor that are necessarily infringed by:\n"
+			"\n"
+			"(a) their Contribution(s) (the licensed "
+			"copyrights of copyright holders and "
+			"non-copyrightable additions of contributors, "
+			"in source or binary form) alone; or\n"
+			"\n"
+			"(b) combination of their Contribution(s) "
+			"with the work of authorship to which such "
+			"Contribution(s) was added by such copyright "
+			"holder or contributor, if, at the time the "
+			"Contribution is added, such addition causes "
+			"such combination to be necessarily infringed. "
+			"The patent license shall not apply to any other "
+			"combinations which include the Contribution.\n"
+			"\n"
+			"Except as expressly stated above, no rights or "
+			"licenses from any copyright holder or contributor "
+			"is granted under this license, whether expressly, "
+			"by implication, estoppel or otherwise.\n"
+			"\n"
+			"DISCLAIMER\n"
+			"\n"
+			"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS "
+			"AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR "
+			"IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, "
+			"THE IMPLIED WARRANTIES OF MERCHANTABILITY AND "
+			"FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. "
+			"IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR "
+			"CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, "
+			"INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL "
+			"DAMAGES (INCLUDING, BUT NOT LIMITED TO, "
+			"PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; "
+			"LOSS OF USE, DATA, OR PROFITS; OR BUSINESS "
+			"INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF "
+			"LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, "
+			"OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) "
+			"ARISING IN ANY WAY OUT OF THE USE OF THIS "
+			"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF "
+			"SUCH DAMAGE.\n"
+			"\n"
+			"Includes code using the same license,\n"
+			"from the SWARMBJECT development environment:\n"
+			"Copyright (c) 2021-2022 SWARMBJECT contributors\n";
+	}
+	
+	static void getName(
+		std::dom::Node* node,
+		std::str::String* name){
+		node->getNextSibling(node);
+		node->getLastChild(node);
+		std::html::InputElement::getValue(
+			node, name->create(
+				std::html::InputElement::getValue(
+					node, nullptr, 0)), 0);
+		node->getParentNode(node);
+	}
+	
+	static void getNames(
+		std::dom::Node* container,
+		std::str::String* dictionary,
+		std::str::String* entry,
+		std::str::String* meaning){
+		std::dom::Node node;
+		container->getFirstChild(&node);
+		getName(&node, dictionary);
+		getName(&node, entry);
+		getName(&node, meaning);
+	}
+	
+	static void getRangeToString(Main* main,
+		std::dom::Range* range,
+		std::str::DString* string){
+		std::dom::Selection selection;
+		main->appWindow.getSelection(&selection);
+		selection.getRangeAt(range, 0);
+		std::dom::Node startContainer;
+		range->getStartContainer(&startContainer);
+		std::dom::Node endContainer;
+		range->getEndContainer(&endContainer);
+		rangeToString(string,
+			&startContainer, range->getStartOffset(),
+			&endContainer, range->getEndOffset());
+	}
+	
+	void loadFile(){
+		dictionaries.create(
+			this, 1, buffer.getU32LE(4),
+			Dictionary::getElement,
+			Dictionary::getTree);
+		meanings.create(
+			this, 1, buffer.getU32LE(8),
+			Meaning::getElement,
+			Meaning::getTree);
+		unsigned int i = buffer.getU32LE(12);
+		expressions.create(
+			this, 1, i,
+			Expression::getElement,	
+			Expression::getTree);
+		i = buffer.getU32LE(expression +
+			8 * i + 8);
+		comment.set(buffer.data, 
+			i, buffer.size - i);
+		buffer.clear();
+	}
+	
+	static void onChangePath(
+		std::ApplicationInstance aexcl app,
+		std::str::DString* path){
+		Main* main = &app.main;
+		if (path != nullptr){
+			std::dom::Node node;
+			main->container.getFirstChild(&node);
+			node.getNextSibling(&node);
+			node.getFirstChild(&node);
+			unsigned int len = path->length;
+			std::dom::CharacterData::setData(
+				&node, path->data, 0, len);
+			main->loadSavePath.set(
+				path->data, 0, len);
+		}
+		main->body.appendChild(
+			&main->container);
+	}
+
+	static void onClickCancel(std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node node;
+		main->body.getLastChild(&node);
+		main->body.replaceChild(
+			&main->lookupContainer, &node);
+	}
+	
+	static void onClickCancelEntry(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node* container = 
+			&main->currentEntry;
+		
+		std::dom::Node div;
+		std::dom::Node textNode;
+		e->getTarget(&div);
+		div.getNextSibling(&div);
+		div.getLastChild(&textNode);
+		std::dom::Node node;
+		container->getFirstChild(&node);
+		node.getNextSibling(&node);
+		container->insertBefore(&textNode, &node);
+		
+		div.getNextSibling(&div);
+		div.getLastChild(&textNode);
+		node.getNextSibling(&node);
+		container->insertBefore(&textNode, &node);
+		
+		div.getNextSibling(&div);
+		div.getLastChild(&textNode);
+		container->appendChild(&textNode);
+		
+		main->body.replaceChild(
+			&main->container, &main->entryContainer);
+	}
+	
+	static void onClickOnAdd(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::str::String dictionaryName;
+		std::str::String expressionName;
+		std::str::String meaningName;
+		getNames(&main->container, &dictionaryName, 
+			&expressionName, &meaningName);
+		
+		if (dictionaryName.length > 0 && 
+			expressionName.length > 0 && 
+			meaningName.length > 0){
+			if (main->buffer.size > 0)
+				{main->loadFile();}
+			Dictionary* dictionary = (Dictionary*)(
+				main->dictionaries.find(
+					&dictionaryName, Dictionary::getTree,
+					Dictionary::compareName));
+			if (dictionary == nullptr){
+				dictionary = new Dictionary;
+				dictionary->name.move(&dictionaryName);
+				dictionary->entries = nullptr;
+				main->dictionaries.insert(
+					dictionary, Dictionary::getTree,
+					Dictionary::compare);
+			}
+			
+			Expression* expression = (Expression*)(
+				main->expressions.find(
+					&expressionName, Expression::getTree,
+					Expression::compareName));
+			if (expression == nullptr){
+				if (expressionName.length > 
+					main->longestExpression){
+					main->longestExpression = 
+						expressionName.length;
+				}
+				expression = new Expression;
+				expression->name.move(&expressionName);
+				expression->entries = nullptr;
+				main->expressions.insert(
+					expression, Expression::getTree,
+					Expression::compare);
+			}
+			
+			Meaning* meaning = (Meaning*)(
+				main->meanings.find(
+					&meaningName, Meaning::getTree,
+					Meaning::compareName));
+			if (meaning == nullptr){
+				meaning = new Meaning;
+				meaning->name.move(&meaningName);
+				meaning->entries = nullptr;
+				main->meanings.insert(
+					meaning, Meaning::getTree,
+					Meaning::compare);
+			}
+			
+			Entry* entry = new Entry;
+			entry->dictionary = dictionary;
+			entry->expression = expression;
+			entry->meaning = meaning;
+			
+			Entry* insert = (Entry*)(
+				std::ds::DLList::insert(
+					entry, expression->entries,
+					Entry::getExpressionNext,
+					Entry::compareExpression));
+					
+			if (insert == nullptr ||
+				dictionary != insert->dictionary ||
+				meaning != insert->meaning){
+				std::ds::DLList::pushFront(
+					entry, &dictionary->entries,
+					nullptr, Entry::getDictionaryNext);
+					
+				if (insert == nullptr){
+					std::ds::DLList::pushFront(
+						entry, &expression->entries,
+						nullptr, Entry::getExpressionNext);
+				} else {
+					std::ds::DLList::insertNext(
+						insert, entry, 
+						nullptr, Entry::getExpressionNext);
+				} 
+				
+				std::ds::DLList::pushFront(
+					entry, &meaning->entries,
+					nullptr, Entry::getMeaningNext);
+			} else {
+				delete entry;
+				entry = insert;
+			}
+				
+			std::dom::Node container;
+			main->container.getLastChild(&container);
+			container.getPreviousSibling(&container);
+			std::html::Element::removeChildren(&container);
+			std::dom::Node element;
+			std::dom::Node textNode;
+			std::css::Declaration style;
+			std::css::Keyword keyword;
+			std::css::Short len;
+			addEntry(&main->document, &element, 
+				&textNode, entry, &container, 
+				&style, &keyword, &len);
+		}
+	}
+
+	static void onClickOnAddFind(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node* document = &main->document;
+		std::dom::Node* container = &main->container;
+		std::dom::Node div;
+		std::dom::Node textNode;
+		std::dom::Node element;
+		std::css::Declaration style;
+		std::css::Keyword keyword;
+		std::css::Short len;
+			
+		createContainer(document, container,
+			&style, &keyword, &len);
+		
+		addRowClick(document, &div, &textNode,
+			"Cancel", container, &style, 
+			&keyword, &len, onClickOnCancel);
+
+		addRow(document, &div, &textNode,
+			"Dictionary: ", container,
+			&style, &keyword, &len);
+		std::html::InputElement::create(
+			document, &element);
+		div.appendChild(&element);
+
+		addRow(document, &div, &textNode,
+			"Expression: ", container,
+			&style, &keyword, &len);
+		std::html::InputElement::create(
+			document, &element);
+		div.appendChild(&element);
+
+		addRow(document, &div, &textNode,
+			"Meaning: ", container,
+			&style, &keyword, &len);
+		std::html::InputElement::create(
+			document, &element);
+		div.appendChild(&element);
+
+		addRowClick(document, &div, &textNode,
+			"Add", container, &style, 
+			&keyword, &len, onClickOnAdd);
+
+		addRowClick(document, &div, &textNode,
+			"Find", container, &style, 
+			&keyword, &len, onClickOnFind);
+		
+		std::html::DivElement::create(
+			document, &div);
+		std::html::Element::getStyle(&div, &style);
+		style.setBorderTopWidth(len.set(
+			1, std::css::Units::px));
+		style.setBorderTopStyle(keyword.set(
+			std::css::BorderStyles::solid));
+		std::dom::MouseEvent::setOnClick(
+			&div, onClickOnEntry);
+		container->appendChild(&div);
+
+		addRowClick(document, &div, &textNode,
+			"Next", container, &style, 
+			&keyword, &len, onClickOnFindNext);
+		style.setDisplay(keyword.set(
+			std::css::DisplayTypes::none));
+			
+		main->body.replaceChild(
+			container, &main->menuContainer);
+	}
+
+	static void onClickOnButton(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node node;
+		e->getTarget(&node);
+		if (!node.isSameNode(
+			&main->buttonsContainer)){
+			std::str::DString* string = 
+				&main->buttonString;
+			string->clear();
+			std::html::InputElement::getValueDString(
+				&node, string);
+			if (std::arr::Uchar::compareRange(
+				string->data, 0, string->length,
+				"Menu", 0, 4) == std::Compare::equal){
+				main->body.replaceChild(&main->menuContainer,
+					&main->lookupContainer);
+			} else {
+				e->preventDefault();
+				e->stopPropagation();
+				main->doPaste(string);
+			}
+		}
+	}
+	
+	static void onClickOnCancel(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node node;
+		e->getTarget(&node);
+		node.getParentNode(&node);
+		main->body.replaceChild(
+			&main->menuContainer, &node);
+		main->container.set(nullptr);
+	}
+	
+	static void onClickOnConvert(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		main->onLog(LogTypes::convert);
+		main->loadFile();
+		std::dom::Node* document = &main->document;
+		std::dom::Node div;
+		main->container.getLastChild(&div);
+		std::dom::Node node;
+		unsigned char[] text = "Converted";
+		addText(document, &div, 
+			&node, text,
+			std::str::CString::length(text, 0));
+		div.getPreviousSibling(&div);
+		div.getPreviousSibling(&div);
+		std::dom::MouseEvent::setOnClick(
+			&div, onClickOnCancel);
+		std::css::Declaration style;
+		std::css::Keyword keyword;
+		main->menuContainer.getLastChild(&div);
+		div.getPreviousSibling(&div);
+		std::html::Element::getStyle(
+			&div, &style);
+		style.setDisplay(keyword.set(
+			std::css::DisplayTypes::none));
+		div.getPreviousSibling(&div);
+		std::html::Element::getStyle(
+			&div, &style);
+		style.setDisplay(keyword.set(
+			std::css::DisplayTypes::block));
+		div.getPreviousSibling(&div);
+		div.getPreviousSibling(&div);
+		std::html::Element::getStyle(
+			&div, &style);
+		style.setDisplay(&keyword);
+	}
+	
+	static void onClickOnDelete(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node div;
+		std::dom::Node textNode;
+		main->container.getLastChild(&div);
+		div.getPreviousSibling(&div);
+		div.removeChild(&main->currentEntry);
+		std::str::DString name;
+		std::str::String text;
+		/*Starts with the meaning, as it is 
+			probably the longest.*/
+		main->entryContainer.getLastChild(&div);
+		div.getPreviousSibling(&div);
+		div.getLastChild(&textNode);
+		div.removeChild(&textNode);
+		std::dom::CharacterData::getDataDString(
+			&textNode, &name);
+		text.data = name.data;
+		text.length = name.length;
+		Meaning* meaning = (Meaning*)(
+			main->meanings.find(
+				&text, Meaning::getTree,
+				Meaning::compareName));
+		div.getPreviousSibling(&div);
+		div.getLastChild(&textNode);
+		div.removeChild(&textNode);
+		name.clear();
+		std::dom::CharacterData::getDataDString(
+			&textNode, &name);
+		text.data = name.data;
+		text.length = name.length;
+		Expression* expression = (Expression*)(
+			main->expressions.find(
+				&text, Expression::getTree,
+				Expression::compareName));
+		div.getPreviousSibling(&div);
+		div.getLastChild(&textNode);
+		div.removeChild(&textNode);
+		name.clear();
+		std::dom::CharacterData::getDataDString(
+			&textNode, &name);
+		text.data = name.data;
+		text.length = name.length;
+		Dictionary* dictionary = (Dictionary*)(
+			main->dictionaries.find(
+				&text, Dictionary::getTree,
+				Dictionary::compareName));
+		text.data = nullptr;
+		text.length = 0;
+		Entry* entry = (Entry*)(
+			expression->entries);
+		while (dictionary != entry->dictionary &&
+			meaning != entry->meaning){
+			entry = (Entry*)(entry->
+				expressionNext.next);
+		}
+		entry->dictionaryNext.erase(
+			&dictionary->entries,
+			nullptr, Entry::getDictionaryNext);
+		entry->expressionNext.erase(
+			&expression->entries,
+			nullptr, Entry::getExpressionNext);
+		entry->meaningNext.erase(
+			&meaning->entries,
+			nullptr, Entry::getMeaningNext);
+		delete entry;
+		if (dictionary->entries == nullptr){
+			main->dictionaries.erase(
+				dictionary, Dictionary::getTree);
+			delete dictionary;
+		}
+		if (expression->entries == nullptr){
+			main->expressions.erase(
+				expression, Expression::getTree);
+			delete expression;
+		}
+		if (meaning->entries == nullptr){
+			main->meanings.erase(
+				meaning, Meaning::getTree);
+			delete meaning;
+		}
+		main->body.replaceChild(
+			&main->container, &main->entryContainer);
+	}
+	
+	static void onClickOnDoLoad(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		main->onLog(LogTypes::load);
+		app.fileSystem.openFile(
+			main->loadSavePath.data, onLoadFile,
+			std::fs::OpenFileModes::readBinary);
+	}
+	
+	static void onClickOnDoSave(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		main->onLog(LogTypes::save);
+		app.fileSystem.openFile(
+			main->loadSavePath.data, onSaveFile,
+			std::fs::OpenFileModes::writeBinary);
+	}
+	
+	static void onClickOnEdit(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node* document = &main->document;
+		std::dom::Node* container = &main->container;
+		
+		std::dom::Node div;
+		std::dom::Node textNode;
+		std::css::Declaration style;
+		std::css::Keyword keyword;
+		std::css::Short len;
+		
+		createContainer(document, container,
+			&style, &keyword, &len);
+			
+		addRowClick(document, &div, &textNode,
+			"Cancel", container, &style, 
+			&keyword, &len, onClickOnCancel);
+			
+		addRowClick(document, &div, &textNode,
+			"Convert", container, &style, 
+			&keyword, &len, onClickOnConvert);
+			
+		addLog(document, &div, 
+			container, &style, &len);
+			
+		addText(document, &div,
+			&textNode, "Convert log:", 12);
+		
+		main->body.replaceChild(
+			container, &main->menuContainer);
+	}
+
+	static void onClickOnEntry(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node* container = &main->entryContainer;
+		e->getTarget(&main->currentEntry);
+		
+		std::dom::Node div;
+		std::dom::Node textNode;
+		
+		if (container->isNull()){
+			std::dom::Node* document = &main->document;
+			
+			std::css::Declaration style;
+			std::css::Keyword keyword;
+			std::css::Short len;
+			
+			createContainer(document, container,
+				&style, &keyword, &len);
+				
+			addRowClick(document, &div, &textNode,
+				"Cancel", container, &style, 
+				&keyword, &len, onClickCancelEntry);
+				
+			addRow(document, &div, &textNode,
+				"Dictionary: ", container,
+				&style, &keyword, &len);
+				
+			addRow(document, &div, &textNode,
+				"Expression: ", container,
+				&style, &keyword, &len);
+				
+			addRow(document, &div, &textNode,
+				"Meaning: ", container,
+				&style, &keyword, &len);
+				
+			addRowClick(document, &div, &textNode,
+				"Delete", container, &style, 
+				&keyword, &len, onClickOnDelete);
+		}
+		
+		container->getFirstChild(&div);
+		div.getNextSibling(&div);
+		std::dom::Node node;
+		main->currentEntry.getFirstChild(&node);
+		node.getNextSibling(&textNode);
+		textNode.getNextSibling(&node);
+		div.appendChild(&textNode);
+		
+		div.getNextSibling(&div);
+		node.getNextSibling(&textNode);
+		textNode.getNextSibling(&node);
+		div.appendChild(&textNode);
+		
+		div.getNextSibling(&div);
+		node.getNextSibling(&textNode);
+		div.appendChild(&textNode);
+		
+		main->body.replaceChild(
+			container, &main->container);
+	}
+		
+	static void onClickOnFind(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		app.main.nextEntry = nullptr;
+		onClickOnFindNext(e, app);
+	}
+		
+	static void onClickOnFindNext(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node* document = &main->document;
+		std::dom::Node container;
+		std::dom::Node div;
+		std::dom::Node textNode;
+		std::css::Declaration style;
+		std::css::Keyword keyword;
+		std::css::Short len;
+		main->container.getLastChild(&container);
+		container.getPreviousSibling(&container);
+		std::html::Element::removeChildren(&container);
+		
+		std::str::String dictionaryName;
+		std::str::String expressionName;
+		std::str::String meaningName;
+		getNames(&main->container, &dictionaryName, 
+			&expressionName, &meaningName);
+		
+		std::str::String* dictionary;
+		std::str::String* expression;
+		std::str::String* meaning;
+		
+		std::str::Compare cmp;
+		cmp.compare = std::str::Compare::rangeCI;
+		
+		unsigned int i = 0;
+		Entry* entry = main->nextEntry;
+		if (expressionName.length > 
+			meaningName.length){
+			Expression* expressions;
+			if (entry == nullptr){
+				expressions = (Expression*)(
+					main->expressions.min(
+						&expressionName, Expression::getTree,
+						Expression::compareFind));
+			} else {
+				expressions = (Expression*)(
+					std::ds::BinTree::next(entry->expression,
+						Expression::getTree));
+			}
+			while (true){
+				while (entry != nullptr){
+					dictionary = &entry->dictionary->name;
+					meaning = &entry->meaning->name;
+					if (std::str::CString::substartsRange(
+								dictionary->data, 0, 
+								dictionary->length, dictionaryName.data, 
+								0, dictionaryName.length, &cmp) == 
+							std::Compare::equal && 
+						std::str::CString::substartsRange(
+								meaning->data, 0, 
+								meaning->length, meaningName.data, 
+								0, meaningName.length, &cmp) == 
+							std::Compare::equal){
+						i = i + 1;
+						if (i > findMax){
+							expressions = nullptr;
+							break;
+						}
+						addEntry(document, &div, 
+							&textNode, entry, &container, 
+							&style, &keyword, &len);
+					}
+					entry = (Entry*)(entry->expressionNext.next);
+				}
+				if (expressions == nullptr) {break;}
+				expression = &expressions->name;
+				if (std::str::CString::substartsRange(
+						expression->data, 0, 
+						expression->length, expressionName.data, 
+						0, expressionName.length, &cmp) != 
+					std::Compare::equal) {break;}
+				entry = expressions->entries;
+				expressions = (Expression*)(
+					std::ds::BinTree::next(expressions,
+						Expression::getTree));
+			}
+		} else if (meaningName.length > 0){
+			Meaning* meanings;
+			if (entry == nullptr){
+				meanings = (Meaning*)(
+					main->meanings.min(
+						&meaningName, Meaning::getTree,
+						Meaning::compareFind));
+			} else {
+				meanings = (Meaning*)(
+					std::ds::BinTree::next(entry->meaning,
+						Meaning::getTree));
+			}
+			while (true){
+				while (entry != nullptr){
+					dictionary = &entry->dictionary->name;
+					expression = &entry->expression->name;
+					if (std::str::CString::substartsRange(
+								dictionary->data, 0, 
+								dictionary->length, dictionaryName.data, 
+								0, dictionaryName.length, &cmp) == 
+							std::Compare::equal && 
+						std::str::CString::substartsRange(
+								expression->data, 0, 
+								expression->length, expressionName.data, 
+								0, expressionName.length, &cmp) == 
+							std::Compare::equal){
+						i = i + 1;
+						if (i > findMax){
+							meanings = nullptr;
+							break;
+						}
+						addEntry(document, &div, 
+							&textNode, entry, &container, 
+							&style, &keyword, &len);
+					}
+					entry = (Entry*)(entry->meaningNext.next);
+				}
+				if (meanings == nullptr) {break;}
+				meaning = &meanings->name;
+				if (std::str::CString::substartsRange(
+						meaning->data, 0, 
+						meaning->length, meaningName.data, 
+						0, meaningName.length, &cmp) != 
+					std::Compare::equal) {break;}
+				entry = meanings->entries;
+				meanings = (Meaning*)(
+					std::ds::BinTree::next(meanings,
+						Meaning::getTree));
+			}
+		} else {
+			Dictionary* dictionaries;
+			if (entry == nullptr){
+				dictionaries = (Dictionary*)(
+					main->dictionaries.min(
+						&dictionaryName, Dictionary::getTree,
+						Dictionary::compareFind));
+			} else {
+				dictionaries = (Dictionary*)(
+					std::ds::BinTree::next(
+						entry->dictionary, Dictionary::getTree));
+			}
+			while (true){
+				while (entry != nullptr){
+					i = i + 1;
+					if (i > findMax){
+						dictionaries = nullptr;
+						break;
+					}
+					addEntry(document, &div, 
+						&textNode, entry, &container, 
+						&style, &keyword, &len);
+					entry = (Entry*)(entry->dictionaryNext.next);
+				}
+				if (dictionaries == nullptr) {break;}
+				dictionary = &dictionaries->name;
+				if (std::str::CString::substartsRange(
+						dictionary->data, 0, 
+						dictionary->length, dictionaryName.data, 
+						0, dictionaryName.length, &cmp) != 
+					std::Compare::equal) {break;}
+				entry = dictionaries->entries;
+				dictionaries = (Dictionary*)(
+					std::ds::BinTree::next(dictionaries,
+						Dictionary::getTree));
+			}
+		}
+		main->container.getLastChild(&container);
+		std::html::Element::getStyle(
+			&container, &style);
+		if (i > findMax){
+			main->nextEntry = entry;
+			style.setDisplay(keyword.set(
+				std::css::DisplayTypes::block));
+		} else {
+			main->nextEntry = nullptr;
+			style.setDisplay(keyword.set(
+				std::css::DisplayTypes::none));
+		}
+	}
+	
+	static void onClickOnLoad(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node* document = &main->document;
+		std::dom::Node* container = &main->container;
+		
+		std::dom::Node div;
+		std::dom::Node textNode;
+		std::css::Declaration style;
+		std::css::Keyword keyword;
+		std::css::Short len;
+		
+		createContainer(document, container,
+			&style, &keyword, &len);
+		
+		addRowClick(document, &div, &textNode,
+			"Cancel", container, &style, 
+			&keyword, &len, onClickOnCancel);
+		
+		addRowClick(document, &div, &textNode,
+			main->loadSavePath.data, container,
+			&style, &keyword, &len, onClickOnPath);
+			
+		addRowClick(document, &div, &textNode,
+			"Load", container, &style, 
+			&keyword, &len, onClickOnDoLoad);
+		
+		addLog(document, &div, 
+			container, &style, &len);
+		
+		addText(document, &div,
+			&textNode, "Load log:", 9);
+			
+		main->body.replaceChild(
+			container, &main->menuContainer);
+	}
+	
+	static void onClickOnPath(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		main->body.removeChild(
+			&main->container);
+		app.fileSystem.gui.select(
+			onChangePath, true);
+	}
+	
+	static void onClickOnSave(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node* document = &main->document;
+		std::dom::Node* container = &main->container;
+		
+		std::dom::Node div;
+		std::dom::Node node;
+		std::css::Declaration style;
+		std::css::Keyword keyword;
+		std::css::Short len;
+			
+		createContainer(document, container,
+			&style, &keyword, &len);
+		
+		addRowClick(document, &div, &node,
+			"Cancel", container, &style, 
+			&keyword, &len, onClickOnCancel);
+		
+		addRowClick(document, &div, &node,
+			main->loadSavePath.data, container,
+			&style, &keyword, &len, onClickOnPath);
+			
+		addRow(document, &div, &node,
+			"Comment:", container, &style, 
+			&keyword, &len);
+		std::html::BrElement::create(
+			document, &node);
+		div.appendChild(&node);
+		std::html::InputElement::create(
+			document, &node);
+		std::html::InputElement::setValue(
+			&node, main->comment.data, 
+			0, main->comment.length);
+		div.appendChild(&node);
+			
+		addRowClick(document, &div, &node,
+			"Save", container, &style, 
+			&keyword, &len, onClickOnDoSave);
+			
+		addLog(document, &div, 
+			container, &style, &len);
+		
+		addText(document, &div,
+			&node, "Save log:", 9);
+		
+		main->body.replaceChild(
+			container, &main->menuContainer);
+	}
+	
+	static void onClickOnSaveSettings(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node* container = &main->container;
+		std::dom::Node node;
+		container->getLastChild(&node);
+		node.getLastChild(&node);
+		std::str::DString* buttons = &main->buttons;
+		buttons->clear();
+		std::html::InputElement::getValueDString(
+			&node, buttons);
+		std::dom::Node* buttonsContainer = 
+			&main->buttonsContainer;
+		buttonsContainer->getFirstChild(&node);
+		std::html::Element::removeChildren(
+			buttonsContainer);
+		buttonsContainer->appendChild(&node);
+		unsigned int start = 0;
+		unsigned int end;
+		while (std::str::CString::getValidChar(
+			buttons->data, &start, &end) != 0){
+			addButton(&main->document, &node,
+				buttons->data, start, end - start,
+				buttonsContainer);
+			start = end;
+		}
+		main->body.replaceChild(
+			&main->menuContainer, container);
+		container->set(nullptr);
+	}
+	
+	static void onClickOnSettings(std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node* document = &main->document;
+		std::dom::Node* container = &main->container;
+		
+		std::dom::Node div;
+		std::dom::Node node;
+		std::css::Declaration style;
+		std::css::Keyword keyword;
+		std::css::Short len;
+		
+		createContainer(document, container,
+			&style, &keyword, &len);
+
+		addRowClick(document, &div, &node,
+			"Save", container, &style, 
+			&keyword, &len, onClickOnSaveSettings);
+			
+		addRow(document, &div, &node,
+			"Buttons: ", container, &style, 
+			&keyword, &len);
+		std::html::InputElement::create(
+			document, &node);
+		std::html::InputElement::setValue(
+			&node, main->buttons.data, 
+			0, main->buttons.length);
+		div.appendChild(&node);
+		
+		main->body.replaceChild(
+			container, &main->menuContainer);
+	}
+
+	static void onCut(std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		e->preventDefault();
+		std::dom::Range range;
+		std::str::DString string;
+		getRangeToString(&app.main, &range, &string);
+		range.deleteContents();
+		std::dom::ClipboardEvent::setTextData(
+			e, string.data, 0, string.length);
+	}
+
+	static void onCopy(std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		e->preventDefault();
+		std::dom::Range range;
+		std::str::DString string;
+		getRangeToString(&app.main, &range, &string);
+		std::dom::ClipboardEvent::setTextData(
+			e, string.data, 0, string.length);
+	}
+
+	static void onKeyDown(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		if (std::dom::KeyboardEvent::
+			getKeyCode(e) == 13){/* enter */
+			Main* main = &app.main;
+			e->preventDefault();
+			std::dom::Selection selection;
+			main->appWindow.getSelection(&selection);
+			std::dom::Range range;
+			selection.getRangeAt(&range, 0);
+			brToCaret(&range, &main->document);
+		}
+	}
+	
+	static void onKeyUp(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::html::Element::removeChildren(
+			&main->meaningsContainer);
+		std::dom::Selection selection;
+		main->appWindow.getSelection(&selection);
+		std::dom::Range range;
+		selection.getRangeAt(&range, 0);
+		std::dom::Node node;
+		range.getStartContainer(&node);
+		unsigned int offset = range.getStartOffset();
+		std::str::DString data;
+		if (node.getNodeType() == std::dom::NodeTypes::text){
+			std::dom::CharacterData::
+				substringDataDString(&node, &data, 
+					offset, std::dom::CharacterData::
+						getLength(&node));
+			node.getNextSibling(&node);
+		} else {
+			node.getChildNode(&node, offset);
+		}
+		while (true){
+			switch (node.getNodeType()){
+				case std::dom::NodeTypes::text:
+					if (data.length > 
+						main->longestExpression) {break;}
+					std::dom::CharacterData::getDataDString(
+						&node, &data);
+				case std::dom::NodeTypes::element:
+					if (data.length > 0 && 
+						data.data[data.length - 1] != ' '){
+						data.push(' ');
+					}
+					node.getNextSibling(&node);
+					continue;
+			}
+			break;
+		}
+		
+		std::str::Compare cmp;
+		cmp.compare = std::str::Compare::rangeCI;
+		
+		std::str::View dictionary;
+		std::str::View expression;
+		std::str::View meaning;
+		std::str::DString text;
+		
+		std::ds::Buffer* buffer = 
+			&main->buffer;
+		if (buffer->size > 0){
+			bool dictionaries;
+			unsigned int start;
+			if (main->meaning != 16){
+				dictionaries = true;
+			} else {
+				dictionaries = false;
+				start = buffer->getU32LE(16);
+				dictionary.set(buffer->data, 
+					start, buffer->getU32LE(20) - start);
+			}
+			unsigned int size = buffer->
+				getU32LE(12);
+			unsigned int index =
+				std::arr::Void::insert(
+					main, 1, size, &data, 
+					Expression::bufferMax) - 1;
+			while (true){
+				if (index == 0) {break;}
+				unsigned int i = 
+					main->expression + index * 8;
+				unsigned int j = buffer->getU32LE(i);
+				expression.set(buffer->data, 
+					j, buffer->getU32LE(i + 8) - j);
+				if (std::str::CString::substartsRange(
+						data.data, 0, data.length,
+						expression.data, expression.start,
+						expression.length, &cmp) != 
+					std::Compare::equal){
+					if (cmp.srcStart == 0) {break;}
+					data.trim(cmp.srcStart);
+					index = std::arr::Void::insert(
+						main, 1, index, &data, 
+						Expression::bufferMax) - 1;
+					continue;
+				}
+				j = buffer->getU32LE(i + 4);
+				unsigned int max = buffer->getU32LE(i + 12);
+				if (dictionaries){
+					while (j < max){
+						i = 12 + buffer->getU32LE(j) * 4;
+						start = buffer->getU32LE(i);
+						dictionary.set(buffer->data, 
+							start, buffer->getU32LE(i + 4) - start);
+						i = main->meaning + 
+							buffer->getU32LE(j + 4) * 4;
+						start = buffer->getU32LE(i);
+						meaning.set(buffer->data, 
+							start, buffer->getU32LE(i + 4) - start);
+						main->addEntryText(&text, &dictionary, 
+							&expression, &meaning, &node);
+						j = j + 8;
+					}
+				} else {
+					while (j < max){
+						i = main->meaning + 
+							buffer->getU32LE(j) * 4;
+						start = buffer->getU32LE(i);
+						meaning.set(buffer->data, 
+							start, buffer->getU32LE(i + 4) - start);
+						main->addEntryText(&text, &dictionary, 
+							&expression, &meaning, &node);
+						j = j + 4;
+					}
+				}
+				index = index - 1;
+			}
+		} else {
+			Expression* expressions = 
+				(Expression*)(main->expressions.max(
+					&data, Expression::getTree,
+					Expression::compareList));
+			while (true){
+				if (expressions == nullptr) {break;}
+				expression.setString(&expressions->name);
+				if (std::str::CString::substartsRange(
+						data.data, 0, data.length,
+						expression.data, 0, 
+						expression.length, &cmp) != 
+					std::Compare::equal){
+					if (cmp.srcStart == 0) {break;}
+					data.trim(cmp.srcStart);
+					expressions = (Expression*)(
+						main->expressions.max(
+							&data, Expression::getTree,
+							Expression::compareList));
+					continue;
+				}
+				Entry* entry = expressions->entries;
+				while (entry != nullptr){
+					dictionary.setString(
+						&entry->dictionary->name);
+					meaning.setString(
+						&entry->meaning->name);
+					main->addEntryText(&text, &dictionary, 
+						&expression, &meaning, &node);
+					entry = (Entry*)(entry->expressionNext.next);
+				}
+				expressions = (Expression*)(
+					std::ds::BinTree::previous(
+						expressions, Expression::getTree));
+			}
+		}
+	}
+	
+	static void onLoadFile(
+		std::ApplicationInstance aexcl app,
+		std::fs::File* file){
+		std::dom::Node div;
+		Main* main = &app.main;
+		std::ds::Buffer* buffer = &main->buffer;
+		if (buffer->size == 0){
+			main->dictionaries.clear(
+				Dictionary::getTree,
+				Dictionary::erase);
+			main->meanings.clear(
+				Meaning::getTree,
+				Meaning::erase);
+			main->expressions.clear(
+				Expression::getTree,
+				Expression::erase);
+			
+			std::css::Declaration style;
+			std::css::Keyword keyword;
+			main->menuContainer.getLastChild(&div);
+			div.getPreviousSibling(&div);
+			std::html::Element::getStyle(
+				&div, &style);
+			style.setDisplay(keyword.set(
+				std::css::DisplayTypes::block));
+			div.getPreviousSibling(&div);
+			std::html::Element::getStyle(
+				&div, &style);
+			style.setDisplay(keyword.set(
+				std::css::DisplayTypes::none));
+			div.getPreviousSibling(&div);
+			div.getPreviousSibling(&div);
+			std::html::Element::getStyle(
+				&div, &style);
+			style.setDisplay(&keyword);
+		}
+		
+		unsigned int size = file->getSize();
+		buffer->create(size);
+		file->read(buffer->data, 0, size);
+		main->meaning = 12 + 
+			4 * buffer->getU32LE(4);
+		main->expression = main->meaning +
+			4 * buffer->getU32LE(8) - 4;
+		unsigned int comment =
+			buffer->getU32LE(main->expression +
+				8 * buffer->getU32LE(12) + 8);
+		
+		std::dom::Node* document = &main->document;
+		main->container.getLastChild(&div);
+		std::dom::Node node;
+		unsigned char[] text = "Loaded";
+		addText(document, &div, 
+			&node, text,
+			std::str::CString::length(text, 0));
+		if (comment < size){
+			text = "The file has a comment: \"";
+			addText(document, &div, 
+				&node, text,
+				std::str::CString::length(text, 0));
+			std::dom::Text::create(document, &node, 
+				buffer->data, comment, size - comment);
+			div.appendChild(&node);
+			std::html::BrElement::create(
+				document, &node);
+			div.appendChild(&node);
+			addText(&main->document, &div, 
+				&node, "\"", 1);
+		}
+		div.getPreviousSibling(&div);
+		std::dom::MouseEvent::setOnClick(
+			&div, onClickOnDoLoad);
+		div.getPreviousSibling(&div);
+		std::dom::MouseEvent::setOnClick(
+			&div, onClickOnPath);
+		div.getPreviousSibling(&div);
+		std::dom::MouseEvent::setOnClick(
+			&div, onClickOnCancel);
+	}
+	
+	void onLog(unsigned char type){
+		std::dom::Node div;
+		container.getFirstChild(&div);
+		std::dom::MouseEvent::setOnClick(
+			&div, nullptr);
+		div.getNextSibling(&div);
+		std::dom::MouseEvent::setOnClick(
+			&div, nullptr);
+		div.getNextSibling(&div);
+		if (type != LogTypes::convert){
+			if (type == LogTypes::save)
+				{div.getNextSibling(&div);}
+			std::dom::MouseEvent::setOnClick(
+				&div, nullptr);
+			div.getNextSibling(&div);
+		}
+		std::dom::Node node;
+		div.getFirstChild(&node);
+		std::dom::Node br;
+		node.getNextSibling(&br);
+		std::html::Element::removeChildren(&div);
+		div.appendChild(&node);
+		div.appendChild(&br);
+		unsigned char[] text;
+		switch (type){
+			case LogTypes::convert :
+				text = "Converting the dictionary "
+					"to an editable format.";
+				break;
+			case LogTypes::load :
+				text = "Loading the dictionary.";
+				break;
+			case LogTypes::save :
+				text = "Saveing the dictionary.";
+				break;
+		}
+		addText(&document, &div, 
+			&node, text, 
+			std::str::CString::length(text, 0));
+		text = "Note: this can take quite "
+			"some time for big dictionaries.";
+		addText(&document, &div, 
+			&node, text, 
+			std::str::CString::length(text, 0));
+	}
+
+	static void onPaste(std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		e->preventDefault();
+		Main* main = &app.main;
+		std::str::DString string;
+		std::dom::ClipboardEvent::getTextDataDString(
+			e, &string);
+		main->doPaste(&string);
+	}
+	
+	static void onResize(std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		app.main.setTextHeight();
+	}
+	
+	static void onSaveFile(
+		std::ApplicationInstance aexcl app,
+		std::fs::File* file){
+		/*
+			version: 4
+			dictionaries size: 4
+			meanings size: 4
+			expressions size: 4
+			dictionaries: 
+				name start: 4
+			meanings: 
+				name start: 4
+			expressions: 
+				name start: 4
+				entries start: 4
+			expressions end: 8
+			entries: 
+				dictionary index: 4
+					if more than 1 dictionary 
+				meaning index: 4
+			dictionaries: 
+				name 
+			meanings: 
+				name 
+			expressions: 
+				name 
+			comment 
+			
+			Indices start from 1, so 0 can be 
+			used to mean like sorted, when 
+			converting to an editable format, 
+			though it is currently not used.
+		*/
+		
+		Main* main = &app.main;
+		std::dom::Node div;
+		std::dom::Node node;
+		main->container.getLastChild(&div);
+		div.getPreviousSibling(&node);
+		node.getPreviousSibling(&node);
+		node.getLastChild(&node);
+		std::str::DString* comment =
+			&main->comment;
+		std::html::InputElement::getValueDString(
+			&node, comment);
+			
+		unsigned int entries = 24 + 
+			4 * (main->dictionaries.size + 
+			main->meanings.size) +
+			8 * main->expressions.size;
+		unsigned int i = 0;
+		unsigned int len = 1;
+		Dictionary* dictionary = 
+			(Dictionary*)(main->dictionaries.
+				first(Dictionary::getTree));
+		while (dictionary != nullptr){
+			dictionary->id = len;
+			len = len + 1;
+			i = i + dictionary->name.length;
+			dictionary = (Dictionary*)(
+				std::ds::BinTree::next(dictionary, 
+					Dictionary::getTree));
+		}
+		bool dictionaries = len != 2;
+		len = 1;
+		Meaning* meaning = 
+			(Meaning*)(main->meanings.
+				first(Meaning::getTree));
+		while (meaning != nullptr){
+			meaning->id = len;
+			len = len + 1;
+			i = i + meaning->name.length;
+			meaning = (Meaning*)(
+				std::ds::BinTree::next(meaning,
+					Meaning::getTree));
+		}
+		len = 0;
+		Expression* expression = 
+			(Expression*)(main->expressions.
+				first(Expression::getTree));
+		while (expression != nullptr){
+			i = i + expression->name.length;
+			Entry* entry = expression->entries;
+			while (entry != nullptr){
+				len = len + 1;
+				entry = (Entry*)(entry->expressionNext.next);
+			}
+			expression = (Expression*)(
+				std::ds::BinTree::next(expression,
+					Expression::getTree));
+		}
+		unsigned int j;
+		if (dictionaries){
+			j = entries + len * 8;
+		} else {
+			j = entries + len * 4;
+		}
+		std::ds::Buffer buffer;
+		buffer.create(i + j + comment->length);
+		buffer.setU32LE(0, 0);
+		buffer.setU32LE(4, main->dictionaries.size);
+		buffer.setU32LE(8, main->meanings.size);
+		buffer.setU32LE(12, main->expressions.size);
+		i = 16;
+		dictionary = (Dictionary*)(main->
+			dictionaries.first(Dictionary::getTree));
+		while (dictionary != nullptr){
+			buffer.setU32LE(i, j);
+			i = i + 4;
+			len = dictionary->name.length;
+			buffer.setU8s(j, dictionary->
+				name.data, 0, len);
+			j = j + len;
+			dictionary = (Dictionary*)(
+				std::ds::BinTree::next(dictionary, 
+					Dictionary::getTree));
+		}
+		meaning = (Meaning*)(main->
+			meanings.first(Meaning::getTree));
+		while (meaning != nullptr){
+			buffer.setU32LE(i, j);
+			i = i + 4;
+			len = meaning->name.length;
+			buffer.setU8s(j, meaning->
+				name.data, 0, len);
+			j = j + len;
+			meaning = (Meaning*)(
+				std::ds::BinTree::next(meaning,
+					Meaning::getTree));
+		}
+		expression = (Expression*)(main->
+			expressions.first(Expression::getTree));
+		if (dictionaries){
+			while (expression != nullptr){
+				buffer.setU32LE(i, j);
+				buffer.setU32LE(i + 4, entries);
+				i = i + 8;
+				len = expression->name.length;
+				buffer.setU8s(j, expression->
+					name.data, 0, len);
+				j = j + len;
+				Entry* entry = expression->entries;
+				while (entry != nullptr){
+					buffer.setU32LE(entries, 
+						entry->dictionary->id);
+					buffer.setU32LE(entries + 4, 
+						entry->meaning->id);
+					entries = entries + 8;
+					entry = (Entry*)(entry->expressionNext.next);
+				}
+				expression = (Expression*)(
+					std::ds::BinTree::next(expression,
+						Expression::getTree));
+			}
+		} else {
+			while (expression != nullptr){
+				buffer.setU32LE(i, j);
+				buffer.setU32LE(i + 4, entries);
+				i = i + 8;
+				len = expression->name.length;
+				buffer.setU8s(j, expression->
+					name.data, 0, len);
+				j = j + len;
+				Entry* entry = expression->entries;
+				while (entry != nullptr){
+					buffer.setU32LE(entries, 
+						entry->meaning->id);
+					entries = entries + 4;
+					entry = (Entry*)(entry->expressionNext.next);
+				}
+				expression = (Expression*)(
+					std::ds::BinTree::next(expression,
+						Expression::getTree));
+			}
+		}
+		buffer.setU32LE(i, j);
+		buffer.setU32LE(i + 4, entries);
+		buffer.setU8s(j, comment->data, 
+			0, comment->length);
+		file->write(buffer.data, 0, buffer.size);
+		
+		unsigned char[] text = "Saved";
+		addText(&main->document, &div, 
+			&node, text, 
+			std::str::CString::length(text, 0));
+		div.getPreviousSibling(&div);
+		std::dom::MouseEvent::setOnClick(
+			&div, onClickOnDoSave);
+		div.getPreviousSibling(&div);
+		div.getPreviousSibling(&div);
+		std::dom::MouseEvent::setOnClick(
+			&div, onClickOnPath);
+		div.getPreviousSibling(&div);
+		std::dom::MouseEvent::setOnClick(
+			&div, onClickOnCancel);
+	}
+	
+	static void rangeToString(std::str::DString* string,
+		std::dom::Node* startContainer,
+		unsigned int startOffset,
+		std::dom::Node* endContainer,
+		unsigned int endOffset){
+		if (startContainer->getNodeType() !=
+			std::dom::NodeTypes::text){
+			startContainer->getChildNode(
+				startContainer, startOffset);
+			if (startContainer->getNodeType() ==
+				std::dom::NodeTypes::text){
+				startOffset = 0;
+			}
+		}
+		if (endContainer->getNodeType() !=
+			std::dom::NodeTypes::text){
+			endContainer->getChildNode(
+				endContainer, endOffset - 1);
+			if (endContainer->getNodeType() ==
+				std::dom::NodeTypes::text){
+				endOffset = std::dom::CharacterData::
+					getLength(endContainer);
+			}
+		}
+		std::dom::Node node;
+		node.set(startContainer);
+		if (node.getNodeType() ==
+			std::dom::NodeTypes::text &&
+			!node.isSameNode(endContainer)){
+			std::dom::CharacterData::substringDataDString(
+				&node, string, startOffset,
+				std::dom::CharacterData::
+					getLength(&node) - startOffset);
+			node.getNextSibling(&node);
+		}
+		while (!node.isSameNode(endContainer)){
+			if (node.getNodeType() ==
+				std::dom::NodeTypes::text){
+				std::dom::CharacterData::getDataDString(
+					&node, string);
+			} else {
+				string->push('\n');
+			}
+			node.getNextSibling(&node);
+		}
+		if (node.getNodeType() ==
+			std::dom::NodeTypes::text){
+			if (node.isSameNode(startContainer)){
+			std::dom::CharacterData::substringDataDString(
+				&node, string, startOffset,
+					endOffset - startOffset);
+			} else {
+				std::dom::CharacterData::substringDataDString(
+					&node, string, 0, endOffset);
+			}
+		}
+	}
+	
+	void setTextHeight(){
+		std::css::Declaration style;
+		std::css::Short len;
+		unsigned int height = 
+			(appWindow.getInnerHeight() >> 1) - 50;
+		std::html::Element::getStyle(
+			&meaningsContainer, &style);
+		style.setHeight(len.set(
+			height, std::css::Units::px));
+		std::html::Element::getStyle(
+			&textContainer, &style);
+		style.setHeight(len.set(
+			height, std::css::Units::px));
+	}
+
+	static void stringToCaret(unsigned char[] string,
+		unsigned int start, unsigned int len,
+		std::dom::Range* range, bool mergeAfter,
+		std::dom::Node* document){
+		std::dom::Node node;
+		range->getStartContainer(&node);
+		unsigned int offset = range->getStartOffset();
+		/* When between two nodes, inserting will be after the first. */
+		std::dom::Node sibling;
+		std::dom::Node parent;
+		if (node.getNodeType() != std::dom::NodeTypes::text){
+			parent.set(&node);
+			if (offset == 0){
+				node.getFirstChild(&sibling);
+			} else {
+				node.getChildNode(&node, offset - 1);
+				if (node.getNodeType() == std::dom::NodeTypes::text){
+					sibling.set(&node);
+					offset = std::dom::CharacterData::
+						getLength(&node);
+				} else {
+					node.getNextSibling(&sibling);
+					offset = 0;
+				}
+			}
+		} else {
+			sibling.set(&node);
+		}
+		if (sibling.isNull()){
+			std::dom::Text::create(
+				document, &sibling, string, start, len);
+			parent.appendChild(&sibling);
+			range->setStart(&sibling, len);
+			range->setEnd(&sibling, len);
+		} else if (sibling.getNodeType() !=
+				std::dom::NodeTypes::text ||
+			(!mergeAfter && node.getNodeType() !=
+				std::dom::NodeTypes::text)){
+			std::dom::Text::create(
+				document, &node, string, start, len);
+			parent.insertBefore(&node, &sibling);
+			range->setStart(&node, len);
+			range->setEnd(&node, len);
+		} else {
+			std::dom::CharacterData::insertData(
+				&sibling, offset, string, start, len);
+			range->setStart(&sibling, offset + len);
+			range->setEnd(&sibling, offset + len);
+		}
+	}
+	
+	static void stringToRange(std::str::DString* string,
+		std::dom::Range* range, std::dom::Node* document){
+		unsigned int start = 0;
+		unsigned int i = 0;
+		unsigned int len = string->length;
+		unsigned char[] data = string->data;
+		unsigned int end;
+		while (i < len){
+			if (data[i] == '\n'){
+				if (i > 0 && data[i - 1] == '\r'){
+					end = i - 1;
+				} else {
+					end = i;
+				}
+				if (start < end){
+					stringToCaret(data, start, end - start,
+						range, false, document);
+				}
+				start = i + 1;
+				brToCaret(range, document);
+			}
+			i = i + 1;
+		}
+		if (start < i){
+			stringToCaret(data, start, i - start,
+				range, true, document);
+		}
+	}
+	
+	static void textToContainer(
+		std::dom::Node* document, 
+		std::dom::Node* container,
+		unsigned char[] data,
+		unsigned int len){
+		unsigned int start = 0;
+		unsigned int end;
+		unsigned int i = 0;
+		std::dom::Node node;
+		while (i < len){
+			if (data[i] == '\n'){
+				if (i > 0 && data[i - 1] == '\r'){
+					end = i - 1;
+				} else {
+					end = i;
+				}
+				if (start < end){
+					std::dom::Text::create(document,
+						&node, data, start, end - start);
+					container->appendChild(&node);
+				}
+				start = i + 1;
+				std::html::BrElement::create(
+					document, &node);
+				container->appendChild(&node);
+			}
+			i = i + 1;
+		}
+		if (start < i){
+			std::dom::Text::create(document,
+				&node, data, start, i - start);
+					container->appendChild(&node);
+		}
+	}
+	
+	void init(std::ApplicationInstance aexcl app){
+		app.getWindow(&appWindow);
+		appWindow.getDocumentNode(&document);
+		std::dom::Node div;
+		std::dom::Node textNode;
+		std::css::Declaration style;
+		std::css::Keyword keyword;
+		std::css::Short len;
+		
+		std::html::DivElement::create(
+			&document, &lookupContainer);
+		std::html::Element::getStyle(
+			&lookupContainer, &style);
+		style.setPadding(len.set(
+			0, std::css::Units::px));
+		style.setMargin(&len);
+			
+		std::html::DivElement::create(
+			&document, &meaningsContainer);
+		std::html::Element::getStyle(
+			&meaningsContainer, &style);
+		style.setOverflow(keyword.set(
+			std::css::OverflowTypes::auto));
+		unsigned char[] text =
+			"Welcome to Lexikonarium!\n\n"
+			"License\n\n";
+		textToContainer(
+			&document, &meaningsContainer, text,
+			std::str::CString::length(text, 0));
+		textToContainer(
+			&document, &meaningsContainer, getLicense(),
+			std::str::CString::length(getLicense(), 0));
+		lookupContainer.appendChild(
+			&meaningsContainer);
+			
+		std::html::DivElement::create(
+			&document, &textContainer);
+		std::html::Element::getStyle(
+			&textContainer, &style);
+		style.setOverflow(keyword.set(
+			std::css::OverflowTypes::auto));
+		std::html::Element::setContentEditable(
+			&textContainer, true);
+		std::dom::KeyboardEvent::setOnKeyDown(
+			&textContainer, onKeyDown);
+		std::dom::KeyboardEvent::setOnKeyUp(
+			&textContainer, onKeyUp);
+		std::dom::MouseEvent::setOnClick(
+			&textContainer, onKeyUp);
+		std::dom::ClipboardEvent::setOnCut(
+			&textContainer, onCut);
+		std::dom::ClipboardEvent::setOnCopy(
+			&textContainer, onCopy);
+		std::dom::ClipboardEvent::setOnPaste(
+			&textContainer, onPaste);
+		lookupContainer.appendChild(
+			&textContainer);
+			
+		std::html::DivElement::create(
+			&document, &buttonsContainer);
+		std::html::Element::getStyle(
+			&buttonsContainer, &style);
+		style.setOverflow(keyword.set(
+			std::css::OverflowTypes::auto));
+		style.setWhiteSpace(keyword.set(
+			std::css::WhiteSpaceTypes::nowrap));
+		style.setPadding(len.set(
+			0, std::css::Units::px));
+		style.setMargin(&len);
+		addButton(&document, &textNode,
+			"Menu", 0, 4, &buttonsContainer);
+		std::dom::MouseEvent::setOnClick(
+			&buttonsContainer, onClickOnButton);
+		lookupContainer.appendChild(
+			&buttonsContainer);
+
+		createContainer(&document, &menuContainer,
+			&style, &keyword, &len);
+		
+		addRowClick(&document, &div, &textNode,
+			"Cancel", &menuContainer, &style, 
+			&keyword, &len, onClickCancel);
+		
+		addRowClick(&document, &div, &textNode,
+			"Add/Find", &menuContainer, &style, 
+			&keyword, &len, onClickOnAddFind);
+			
+		addRowClick(&document, &div, &textNode,
+			"Load", &menuContainer, &style, 
+			&keyword, &len, onClickOnLoad);
+			
+		addRowClick(&document, &div, &textNode,
+			"Save", &menuContainer, &style, 
+			&keyword, &len, onClickOnSave);
+		
+		addRowClick(&document, &div, &textNode,
+			"Edit", &menuContainer, &style, 
+			&keyword, &len, onClickOnEdit);
+		style.setDisplay(keyword.set(
+			std::css::DisplayTypes::none));
+
+		addRowClick(&document, &div, &textNode,
+			"Settings", &menuContainer, &style, 
+			&keyword, &len, onClickOnSettings);
+		
+		setTextHeight();
+		appWindow.setOnResize(onResize);
+			
+		std::html::Document::getBody(&document, &body);
+		std::html::Element::getStyle(&body, &style);
+		style.setMargin(len.set(
+			0, std::css::Units::px));
+		style.setPadding(&len);
+		body.appendChild(&lookupContainer);
+		
+		longestExpression = 0;
+		
+		loadSavePath.set("/", 0, 1);
+	}
+
+	void main(std::ApplicationInstance aexcl app){
+		init(app);
+	}
+
+}
