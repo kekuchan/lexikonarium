@@ -71,7 +71,7 @@ class Expression {
 
 	Entry* entries;
 	std::str::String name;
-	std::ds::BinTree tree;
+	std::ds::BalBinTree tree;
 	
 	static unsigned char bufferMax(void* main, 
 		unsigned int i, void* find){
@@ -167,13 +167,14 @@ class Expression {
 		delete (Expression*)expression;
 	}
 	
-	static void* getElement(void* main,
+	static void* getElement(void* app,
 		unsigned int i){
+		Main* main = (Main*)app;
 		Expression* expression = new Expression;
 		expression->entries = nullptr;
 		std::ds::Buffer* buffer = 
-			&(Main*)main->buffer;
-		i = (Main*)main->expression + i * 8;
+			&main->buffer;
+		i = main->expression + i * 8;
 		unsigned int j = buffer->getU32LE(i);
 		unsigned int len = buffer->getU32LE(i + 8) - j;
 		buffer->getU8s(j, expression->
@@ -181,30 +182,32 @@ class Expression {
 		j = buffer->getU32LE(i + 4);
 		i = buffer->getU32LE(i + 12);
 		unsigned int id;
-		if ((Main*)main->meaning != 16){
+		if (main->meaning != 16){
 			while (j < i){
 				i = i - 8;
 				id = buffer->getU32LE(i);
-				setEntry((Main*)main, expression, 
+				setEntry(main, expression, 
 					i + 4, &id, (Dictionary*)(
-					(Main*)main->dictionaries.find(
-						&id, Dictionary::getTree,
-						Dictionary::compareId)));
+						std::ds::BalBinTree::find(
+							main->dictionaries,
+							&id, Dictionary::getTree,
+							Dictionary::compareId)));
 			}
 		} else {
-			Dictionary* dictionary = 
-				(Dictionary*)((Main*)main->dictionaries.
-					first(Dictionary::getTree));
+			Dictionary* dictionary = (Dictionary*)(
+				std::ds::BalBinTree::first(
+					main->dictionaries,
+					Dictionary::getTree));
 			while (j < i){
 				i = i - 4;
-				setEntry((Main*)main, expression, 
+				setEntry(main, expression, 
 					i, &id, dictionary);
 			}
 		}
 		return expression;
 	}
 	
-	static std::ds::BinTree* getTree(
+	static std::ds::BalBinTree* getTree(
 		void* expression){
 		return &(Expression*)expression->tree;
 	}
@@ -222,7 +225,8 @@ class Expression {
 		dictionary->entries = entry;
 		*id = main->buffer.getU32LE(i);
 		Meaning* meaning = (Meaning*)(
-			main->meanings.find(
+			std::ds::BalBinTree::find(
+				main->meanings,
 				id, Meaning::getTree,
 				Meaning::compareId));
 		entry->meaning = meaning;

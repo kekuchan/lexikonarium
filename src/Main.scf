@@ -72,7 +72,7 @@ from the SWARMBJECT development environment:
 Copyright (c) 2021-2022 SWARMBJECT contributors
 */
 class Main {
-	
+
 	std::bom::Window appWindow;
 	std::dom::Node body;
 	std::dom::Node document;
@@ -86,9 +86,9 @@ class Main {
 	std::dom::Node entryContainer;
 	std::dom::Node currentEntry;
 	
-	std::ds::BalBinTree dictionaries;
-	std::ds::BalBinTree expressions;
-	std::ds::BalBinTree meanings;
+	Dictionary* dictionaries;
+	Expression* expressions;
+	Meaning* meanings;
 	
 	std::ds::Buffer buffer;
 	/*Since the indices start from 1, these 
@@ -463,19 +463,22 @@ class Main {
 	}
 	
 	void loadFile(){
-		dictionaries.create(
-			this, 1, buffer.getU32LE(4),
-			Dictionary::getElement,
-			Dictionary::getTree);
-		meanings.create(
-			this, 1, buffer.getU32LE(8),
-			Meaning::getElement,
-			Meaning::getTree);
+		dictionaries = (Dictionary*)(
+			std::ds::BalBinTree::create(
+				this, 1, buffer.getU32LE(4),
+				Dictionary::getElement,
+				Dictionary::getTree));
+		meanings = (Meaning*)(
+			std::ds::BalBinTree::create(
+				this, 1, buffer.getU32LE(8),
+				Meaning::getElement,
+				Meaning::getTree));
 		unsigned int i = buffer.getU32LE(12);
-		expressions.create(
-			this, 1, i,
-			Expression::getElement,	
-			Expression::getTree);
+		expressions = (Expression*)(
+			std::ds::BalBinTree::create(
+				this, 1, i,
+				Expression::getElement,	
+				Expression::getTree));
 		i = buffer.getU32LE(expression +
 			8 * i + 8);
 		comment.set(buffer.data, 
@@ -557,20 +560,23 @@ class Main {
 			if (main->buffer.size > 0)
 				{main->loadFile();}
 			Dictionary* dictionary = (Dictionary*)(
-				main->dictionaries.find(
+				std::ds::BalBinTree::find(
+					main->dictionaries,
 					&dictionaryName, Dictionary::getTree,
 					Dictionary::compareName));
 			if (dictionary == nullptr){
 				dictionary = new Dictionary;
 				dictionary->name.move(&dictionaryName);
 				dictionary->entries = nullptr;
-				main->dictionaries.insert(
+				std::ds::BalBinTree::insert(
+					&main->dictionaries,
 					dictionary, Dictionary::getTree,
 					Dictionary::compare);
 			}
 			
 			Expression* expression = (Expression*)(
-				main->expressions.find(
+				std::ds::BalBinTree::find(
+					main->expressions,
 					&expressionName, Expression::getTree,
 					Expression::compareName));
 			if (expression == nullptr){
@@ -582,20 +588,23 @@ class Main {
 				expression = new Expression;
 				expression->name.move(&expressionName);
 				expression->entries = nullptr;
-				main->expressions.insert(
+				std::ds::BalBinTree::insert(
+					&main->expressions,
 					expression, Expression::getTree,
 					Expression::compare);
 			}
 			
 			Meaning* meaning = (Meaning*)(
-				main->meanings.find(
+				std::ds::BalBinTree::find(
+					main->meanings,
 					&meaningName, Meaning::getTree,
 					Meaning::compareName));
 			if (meaning == nullptr){
 				meaning = new Meaning;
 				meaning->name.move(&meaningName);
 				meaning->entries = nullptr;
-				main->meanings.insert(
+				std::ds::BalBinTree::insert(
+					&main->meanings,
 					meaning, Meaning::getTree,
 					Meaning::compare);
 			}
@@ -819,7 +828,8 @@ class Main {
 		text.data = name.data;
 		text.length = name.length;
 		Meaning* meaning = (Meaning*)(
-			main->meanings.find(
+			std::ds::BalBinTree::find(
+				main->meanings,
 				&text, Meaning::getTree,
 				Meaning::compareName));
 		div.getPreviousSibling(&div);
@@ -831,7 +841,8 @@ class Main {
 		text.data = name.data;
 		text.length = name.length;
 		Expression* expression = (Expression*)(
-			main->expressions.find(
+			std::ds::BalBinTree::find(
+				main->expressions,
 				&text, Expression::getTree,
 				Expression::compareName));
 		div.getPreviousSibling(&div);
@@ -843,7 +854,8 @@ class Main {
 		text.data = name.data;
 		text.length = name.length;
 		Dictionary* dictionary = (Dictionary*)(
-			main->dictionaries.find(
+			std::ds::BalBinTree::find(
+				main->dictionaries,
 				&text, Dictionary::getTree,
 				Dictionary::compareName));
 		text.data = nullptr;
@@ -866,18 +878,24 @@ class Main {
 			nullptr, Entry::getMeaningNext);
 		delete entry;
 		if (dictionary->entries == nullptr){
-			main->dictionaries.erase(
-				dictionary, Dictionary::getTree);
+			std::ds::BalBinTree::erase(
+				&main->dictionaries,
+				dictionary, Dictionary::getTree,
+				Dictionary::compare);
 			delete dictionary;
 		}
 		if (expression->entries == nullptr){
-			main->expressions.erase(
-				expression, Expression::getTree);
+			std::ds::BalBinTree::erase(
+				&main->expressions,
+				expression, Expression::getTree,
+				Expression::compare);
 			delete expression;
 		}
 		if (meaning->entries == nullptr){
-			main->meanings.erase(
-				meaning, Meaning::getTree);
+			std::ds::BalBinTree::erase(
+				&main->meanings,
+				meaning, Meaning::getTree,
+				Meaning::compare);
 			delete meaning;
 		}
 		main->body.replaceChild(
@@ -1042,13 +1060,15 @@ class Main {
 			Expression* expressions;
 			if (entry == nullptr){
 				expressions = (Expression*)(
-					main->expressions.min(
+					std::ds::BalBinTree::min(
+						main->expressions,
 						&expressionName, Expression::getTree,
 						Expression::compareFind));
 			} else {
 				expressions = (Expression*)(
-					std::ds::BinTree::next(entry->expression,
-						Expression::getTree));
+					std::ds::BalBinTree::next(
+						entry->expression, Expression::getTree,
+						Expression::compare));
 			}
 			while (true){
 				while (entry != nullptr){
@@ -1084,20 +1104,23 @@ class Main {
 					std::Compare::equal) {break;}
 				entry = expressions->entries;
 				expressions = (Expression*)(
-					std::ds::BinTree::next(expressions,
-						Expression::getTree));
+					std::ds::BalBinTree::next(
+						expressions, Expression::getTree,
+						Expression::compare));
 			}
 		} else if (meaningName.length > 0){
 			Meaning* meanings;
 			if (entry == nullptr){
 				meanings = (Meaning*)(
-					main->meanings.min(
-						&meaningName, Meaning::getTree,
+					std::ds::BalBinTree::min(
+						main->meanings, &meaningName, 
+						Meaning::getTree,
 						Meaning::compareFind));
 			} else {
 				meanings = (Meaning*)(
-					std::ds::BinTree::next(entry->meaning,
-						Meaning::getTree));
+					std::ds::BalBinTree::next(
+						entry->meaning, Meaning::getTree,
+						Meaning::compare));
 			}
 			while (true){
 				while (entry != nullptr){
@@ -1133,20 +1156,23 @@ class Main {
 					std::Compare::equal) {break;}
 				entry = meanings->entries;
 				meanings = (Meaning*)(
-					std::ds::BinTree::next(meanings,
-						Meaning::getTree));
+					std::ds::BalBinTree::next(
+						meanings, Meaning::getTree,
+						Meaning::compare));
 			}
 		} else {
 			Dictionary* dictionaries;
 			if (entry == nullptr){
 				dictionaries = (Dictionary*)(
-					main->dictionaries.min(
+					std::ds::BalBinTree::min(
+						main->dictionaries,
 						&dictionaryName, Dictionary::getTree,
 						Dictionary::compareFind));
 			} else {
 				dictionaries = (Dictionary*)(
-					std::ds::BinTree::next(
-						entry->dictionary, Dictionary::getTree));
+					std::ds::BalBinTree::next(
+						entry->dictionary, Dictionary::getTree,
+						Dictionary::compare));
 			}
 			while (true){
 				while (entry != nullptr){
@@ -1169,8 +1195,9 @@ class Main {
 					std::Compare::equal) {break;}
 				entry = dictionaries->entries;
 				dictionaries = (Dictionary*)(
-					std::ds::BinTree::next(dictionaries,
-						Dictionary::getTree));
+					std::ds::BalBinTree::next(
+						dictionaries, Dictionary::getTree,
+						Dictionary::compare));
 			}
 		}
 		main->container.getLastChild(&container);
@@ -1506,8 +1533,9 @@ class Main {
 				index = index - 1;
 			}
 		} else {
-			Expression* expressions = 
-				(Expression*)(main->expressions.max(
+			Expression* expressions = (Expression*)(
+				std::ds::BalBinTree::max(
+					main->expressions,
 					&data, Expression::getTree,
 					Expression::compareList));
 			while (true){
@@ -1521,7 +1549,8 @@ class Main {
 					if (cmp.srcStart == 0) {break;}
 					data.trim(cmp.srcStart);
 					expressions = (Expression*)(
-						main->expressions.max(
+						std::ds::BalBinTree::max(
+							main->expressions,
 							&data, Expression::getTree,
 							Expression::compareList));
 					continue;
@@ -1537,8 +1566,9 @@ class Main {
 					entry = (Entry*)(entry->expressionNext.next);
 				}
 				expressions = (Expression*)(
-					std::ds::BinTree::previous(
-						expressions, Expression::getTree));
+					std::ds::BalBinTree::previous(
+						expressions, Expression::getTree,
+						Expression::compare));
 			}
 		}
 	}
@@ -1550,13 +1580,16 @@ class Main {
 		Main* main = &app.main;
 		std::ds::Buffer* buffer = &main->buffer;
 		if (buffer->size == 0){
-			main->dictionaries.clear(
+			std::ds::BalBinTree::clear(
+				main->dictionaries,
 				Dictionary::getTree,
 				Dictionary::erase);
-			main->meanings.clear(
+			std::ds::BalBinTree::clear(
+				main->meanings,
 				Meaning::getTree,
 				Meaning::erase);
-			main->expressions.clear(
+			std::ds::BalBinTree::clear(
+				main->expressions,
 				Expression::getTree,
 				Expression::erase);
 			
@@ -1727,44 +1760,46 @@ class Main {
 		node.getLastChild(&node);
 		std::str::DString* comment =
 			&main->comment;
+		comment->clear();
 		std::html::InputElement::getValueDString(
 			&node, comment);
-			
-		unsigned int entries = 24 + 
-			4 * (main->dictionaries.size + 
-			main->meanings.size) +
-			8 * main->expressions.size;
+		
 		unsigned int i = 0;
-		unsigned int len = 1;
-		Dictionary* dictionary = 
-			(Dictionary*)(main->dictionaries.
-				first(Dictionary::getTree));
+		unsigned int dictionaries = 0;
+		Dictionary* dictionary = (Dictionary*)(
+			std::ds::BalBinTree::first(
+				main->dictionaries,
+				Dictionary::getTree));
 		while (dictionary != nullptr){
-			dictionary->id = len;
-			len = len + 1;
+			dictionaries = dictionaries + 1;
+			dictionary->id = dictionaries;
 			i = i + dictionary->name.length;
 			dictionary = (Dictionary*)(
-				std::ds::BinTree::next(dictionary, 
-					Dictionary::getTree));
+				std::ds::BalBinTree::next(
+					dictionary, Dictionary::getTree,
+					Dictionary::compare));
 		}
-		bool dictionaries = len != 2;
-		len = 1;
-		Meaning* meaning = 
-			(Meaning*)(main->meanings.
-				first(Meaning::getTree));
+		unsigned int meanings = 0;
+		Meaning* meaning = (Meaning*)(
+			std::ds::BalBinTree::first(
+				main->meanings, Meaning::getTree));
 		while (meaning != nullptr){
-			meaning->id = len;
-			len = len + 1;
+			meanings = meanings + 1;
+			meaning->id = meanings;
 			i = i + meaning->name.length;
 			meaning = (Meaning*)(
-				std::ds::BinTree::next(meaning,
-					Meaning::getTree));
+				std::ds::BalBinTree::next(
+					meaning, Meaning::getTree,
+					Meaning::compare));
 		}
-		len = 0;
-		Expression* expression = 
-			(Expression*)(main->expressions.
-				first(Expression::getTree));
+		unsigned int expressions = 0;
+		unsigned int len = 0;
+		Expression* expression = (Expression*)(
+			std::ds::BalBinTree::first(
+				main->expressions,
+				Expression::getTree));
 		while (expression != nullptr){
+			expressions = expressions + 1;
 			i = i + expression->name.length;
 			Entry* entry = expression->entries;
 			while (entry != nullptr){
@@ -1772,11 +1807,15 @@ class Main {
 				entry = (Entry*)(entry->expressionNext.next);
 			}
 			expression = (Expression*)(
-				std::ds::BinTree::next(expression,
-					Expression::getTree));
+				std::ds::BalBinTree::next(
+					expression, Expression::getTree,
+					Expression::compare));
 		}
+		unsigned int entries = 24 + 
+			4 * (dictionaries + meanings) +
+			8 * expressions;
 		unsigned int j;
-		if (dictionaries){
+		if (dictionaries != 1){
 			j = entries + len * 8;
 		} else {
 			j = entries + len * 4;
@@ -1784,12 +1823,14 @@ class Main {
 		std::ds::Buffer buffer;
 		buffer.create(i + j + comment->length);
 		buffer.setU32LE(0, 0);
-		buffer.setU32LE(4, main->dictionaries.size);
-		buffer.setU32LE(8, main->meanings.size);
-		buffer.setU32LE(12, main->expressions.size);
+		buffer.setU32LE(4, dictionaries);
+		buffer.setU32LE(8, meanings);
+		buffer.setU32LE(12, expressions);
 		i = 16;
-		dictionary = (Dictionary*)(main->
-			dictionaries.first(Dictionary::getTree));
+		dictionary = (Dictionary*)(
+			std::ds::BalBinTree::first(
+				main->dictionaries,
+				Dictionary::getTree));
 		while (dictionary != nullptr){
 			buffer.setU32LE(i, j);
 			i = i + 4;
@@ -1798,11 +1839,13 @@ class Main {
 				name.data, 0, len);
 			j = j + len;
 			dictionary = (Dictionary*)(
-				std::ds::BinTree::next(dictionary, 
-					Dictionary::getTree));
+				std::ds::BalBinTree::next(
+					dictionary, Dictionary::getTree,
+					Dictionary::compare));
 		}
-		meaning = (Meaning*)(main->
-			meanings.first(Meaning::getTree));
+		meaning = (Meaning*)(
+			std::ds::BalBinTree::first(
+				main->meanings, Meaning::getTree));
 		while (meaning != nullptr){
 			buffer.setU32LE(i, j);
 			i = i + 4;
@@ -1811,12 +1854,14 @@ class Main {
 				name.data, 0, len);
 			j = j + len;
 			meaning = (Meaning*)(
-				std::ds::BinTree::next(meaning,
-					Meaning::getTree));
+				std::ds::BalBinTree::next(
+					meaning, Meaning::getTree,
+					Meaning::compare));
 		}
-		expression = (Expression*)(main->
-			expressions.first(Expression::getTree));
-		if (dictionaries){
+		expression = (Expression*)(
+			std::ds::BalBinTree::first(
+				main->expressions, Expression::getTree));
+		if (dictionaries != 1){
 			while (expression != nullptr){
 				buffer.setU32LE(i, j);
 				buffer.setU32LE(i + 4, entries);
@@ -1835,8 +1880,9 @@ class Main {
 					entry = (Entry*)(entry->expressionNext.next);
 				}
 				expression = (Expression*)(
-					std::ds::BinTree::next(expression,
-						Expression::getTree));
+					std::ds::BalBinTree::next(
+						expression, Expression::getTree,
+						Expression::compare));
 			}
 		} else {
 			while (expression != nullptr){
@@ -1855,8 +1901,9 @@ class Main {
 					entry = (Entry*)(entry->expressionNext.next);
 				}
 				expression = (Expression*)(
-					std::ds::BinTree::next(expression,
-						Expression::getTree));
+					std::ds::BalBinTree::next(
+						expression, Expression::getTree,
+						Expression::compare));
 			}
 		}
 		buffer.setU32LE(i, j);

@@ -72,7 +72,7 @@ class Dictionary {
 	Entry* entries;
 	unsigned int id;
 	std::str::String name;
-	std::ds::BinTree tree;
+	std::ds::BalBinTree tree;
 
 	static unsigned char compare(
 		void* element, void* insert){
@@ -138,7 +138,7 @@ class Dictionary {
 		return dictionary;
 	}
 	
-	static std::ds::BinTree* getTree(
+	static std::ds::BalBinTree* getTree(
 		void* dictionary){
 		return &(Dictionary*)dictionary->tree;
 	}
