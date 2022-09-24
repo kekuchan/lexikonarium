@@ -1,70 +1,59 @@
-# Overview
+# Contribute 
 
-Lexikonarium is about creating dictionaries 
-for self learning purposes. Learnt expressions 
-with informations can be added, and quickly 
-looked upon them, if found in some given text.
+In order to contribute, you have to certify that:
 
-The name Lexikonarium is from the Greek lexiko,
-and the Latin dictionarium, both meaning dictionary.
+```
+Developer Certificate of Origin
+Version 1.1
 
-# Technical details 
+Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
 
-Lexikonarium was designed to load a file, 
-containing the dictionaries into the memory,
-and using it directly for fast lookups. When 
-only one dictionary is contained, it saves 
-space by not having to keep referencing it. 
-For editing however it has to be converted 
-to an editable format. Thus it was designed 
-for smaller dictionaries, otherwise a different 
-architecture would be needed to read and write 
-to them in smaller parts.
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
 
-# Tutorial
 
-To access the menu, tap or click the "Menu" button.
-Choose "Add/Find", and type "Greek" for the 
-dictionary, "lexiko" for the expression and 
-"dictionary" for the meaning, and choose "Add".
-Add another by typing "Latin" for the dictionary,
-"dictionarium" for the expression and "dictionary" 
-for the meaning, and again choose "Add". Now we 
-have two dictionaries ("Greek" and "Latin"), two 
-expressions ("lexiko" and "dictionarium") and a
-meaning ("dictionary"). To exit the menu, tap or 
-click "Cancel", then "Cancel" again. Now by typing 
-in the empty area right above the "Menu" button,
-some text containing the words "lexiko" or 
-"dictionarium", and then putting the cursor before 
-the first letter of these words, their meaning is 
-looked up and displayed above.
+Developer's Certificate of Origin 1.1
 
-Save the dictionaries in the menu with "Save", "/",
-"/" (or choose another path), "New file", type in
-some name ending with ".laf" (Lexikonarium archive 
-file), choose "Create", tap or click on the created 
-".laf" file, and choose "Select". Optionally type in
-some comment, and choose "Save". Creating a backup 
-as a safety measure is done with choosing the saved 
-path, then the ".laf" file, and "Download". To exit 
-the menu, tap or click "Cancel".
+By making a contribution to this project, I certify that:
 
-To load a saved ".laf" file, choose in the menu 
-"Load", "/", tap or click on the ".laf" file (or 
-upload a backup file before that by choosing the 
-folder path and "Upload file"), then "Select" and 
-"Load". This overwrites any of the currently used 
-dictionaries, expressions and meanings with those 
-in the ".laf" file. To exit the menu, tap or click 
-"Cancel". If editing is needed, then the loaded 
-".laf" file has to be converted in the menu with 
-"Edit" and "Convert". To exit the menu, tap or click 
-"Cancel".
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
 
-# Contribute
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
 
-Read [/docs/CONTRIBUTE.md](CONTRIBUTE.md).
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
+
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including all
+    personal information I submit with it, including my sign-off) is
+    maintained indefinitely and may be redistributed consistent with
+    this project or the open source license(s) involved.
+```
+
+by including a 
+```
+Signed-off-by: your name <your e-mail>
+```
+line in the commit message.
+
+It is highly recommended that you describe a plan
+of your contribution, by creating an issue,
+before coding it, to save you the time in case it
+does not align well with the current Lexikonarium goals,
+or if modifications are needed.
+
+By creating an issue, you agree, that the ideas described
+in the issue may be implemented under the license
+of the Lexikonarium project.
 
 # Software license
 

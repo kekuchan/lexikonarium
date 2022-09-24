@@ -1,71 +1,3 @@
-# Overview
-
-Lexikonarium is about creating dictionaries 
-for self learning purposes. Learnt expressions 
-with informations can be added, and quickly 
-looked upon them, if found in some given text.
-
-The name Lexikonarium is from the Greek lexiko,
-and the Latin dictionarium, both meaning dictionary.
-
-# Technical details 
-
-Lexikonarium was designed to load a file, 
-containing the dictionaries into the memory,
-and using it directly for fast lookups. When 
-only one dictionary is contained, it saves 
-space by not having to keep referencing it. 
-For editing however it has to be converted 
-to an editable format. Thus it was designed 
-for smaller dictionaries, otherwise a different 
-architecture would be needed to read and write 
-to them in smaller parts.
-
-# Tutorial
-
-To access the menu, tap or click the "Menu" button.
-Choose "Add/Find", and type "Greek" for the 
-dictionary, "lexiko" for the expression and 
-"dictionary" for the meaning, and choose "Add".
-Add another by typing "Latin" for the dictionary,
-"dictionarium" for the expression and "dictionary" 
-for the meaning, and again choose "Add". Now we 
-have two dictionaries ("Greek" and "Latin"), two 
-expressions ("lexiko" and "dictionarium") and a
-meaning ("dictionary"). To exit the menu, tap or 
-click "Cancel", then "Cancel" again. Now by typing 
-in the empty area right above the "Menu" button,
-some text containing the words "lexiko" or 
-"dictionarium", and then putting the cursor before 
-the first letter of these words, their meaning is 
-looked up and displayed above.
-
-Save the dictionaries in the menu with "Save", "/",
-"/" (or choose another path), "New file", type in
-some name ending with ".laf" (Lexikonarium archive 
-file), choose "Create", tap or click on the created 
-".laf" file, and choose "Select". Optionally type in
-some comment, and choose "Save". Creating a backup 
-as a safety measure is done with choosing the saved 
-path, then the ".laf" file, and "Download". To exit 
-the menu, tap or click "Cancel".
-
-To load a saved ".laf" file, choose in the menu 
-"Load", "/", tap or click on the ".laf" file (or 
-upload a backup file before that by choosing the 
-folder path and "Upload file"), then "Select" and 
-"Load". This overwrites any of the currently used 
-dictionaries, expressions and meanings with those 
-in the ".laf" file. To exit the menu, tap or click 
-"Cancel". If editing is needed, then the loaded 
-".laf" file has to be converted in the menu with 
-"Edit" and "Convert". To exit the menu, tap or click 
-"Cancel".
-
-# Contribute
-
-Read [/docs/CONTRIBUTE.md](CONTRIBUTE.md).
-
 # Software license
 
 Copyright (c) 2022 Lexikonarium contributors
@@ -205,7 +137,3 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS
 DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
-
-Includes text using the same license,
-from the SWARMBJECT development environment:
-Copyright (c) 2021-2022 SWARMBJECT contributors
