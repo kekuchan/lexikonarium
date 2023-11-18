@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Lexikonarium contributors
+Copyright (c) 2022-2023 Lexikonarium contributors
 
 Redistribution and use in source and binary forms,
 with or without modification, are permitted
@@ -69,7 +69,7 @@ SUCH DAMAGE.
 
 Includes code using the same license,
 from the SWARMBJECT development environment:
-Copyright (c) 2021-2022 SWARMBJECT contributors
+Copyright (c) 2021-2023 SWARMBJECT contributors
 */
 class Main {
 
@@ -304,6 +304,15 @@ class Main {
 		std::css::Short* len){
 		std::html::DivElement::create(
 			document, container);
+		createContainerStyle(
+			container, style, keyword, len);
+	}
+			
+	static void createContainerStyle(
+		std::dom::Node* container,
+		std::css::Declaration* style,
+		std::css::Keyword* keyword,
+		std::css::Short* len){
 		std::html::Element::getStyle(
 			container, style);
 		style->setTextAlign(keyword->set(
@@ -350,7 +359,7 @@ class Main {
 
 	static unsigned char[] getLicense(){
 		return
-			"Copyright (c) 2022 Lexikonarium contributors\n"
+			"Copyright (c) 2022-2023 Lexikonarium contributors\n"
 			"\n"
 			"Redistribution and use in source and binary forms, "
 			"with or without modification, are permitted "
@@ -420,7 +429,7 @@ class Main {
 			"\n"
 			"Includes code using the same license,\n"
 			"from the SWARMBJECT development environment:\n"
-			"Copyright (c) 2021-2022 SWARMBJECT contributors\n";
+			"Copyright (c) 2021-2023 SWARMBJECT contributors\n";
 	}
 	
 	static void getName(
@@ -504,47 +513,44 @@ class Main {
 		main->body.appendChild(
 			&main->container);
 	}
-
-	static void onClickCancel(std::dom::Event* e,
-		std::ApplicationInstance aexcl app){
-		Main* main = &app.main;
-		std::dom::Node node;
-		main->body.getLastChild(&node);
-		main->body.replaceChild(
-			&main->lookupContainer, &node);
-	}
 	
-	static void onClickCancelEntry(
-		std::dom::Event* e,
+	static void onClickAbout(std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
-		std::dom::Node* container = 
-			&main->currentEntry;
-		
+		std::dom::Node* document = &main->document;
+		std::dom::Node container;
 		std::dom::Node div;
 		std::dom::Node textNode;
-		e->getTarget(&div);
-		div.getNextSibling(&div);
-		div.getLastChild(&textNode);
-		std::dom::Node node;
-		container->getFirstChild(&node);
-		node.getNextSibling(&node);
-		container->insertBefore(&textNode, &node);
+		std::dom::Node element;
+		std::css::Declaration style;
+		std::css::Keyword keyword;
+		std::css::Short len;
 		
-		div.getNextSibling(&div);
-		div.getLastChild(&textNode);
-		node.getNextSibling(&node);
-		container->insertBefore(&textNode, &node);
+		createContainer(document, &container, 
+			&style, &keyword, &len);
+
+		addRowClick(document, &div, &textNode, 
+			"Menu", &container, &style, 
+			&keyword, &len, onClickCancel);
 		
-		div.getNextSibling(&div);
-		div.getLastChild(&textNode);
-		container->appendChild(&textNode);
-		
-		main->body.replaceChild(
-			&main->container, &main->entryContainer);
+		addLog(document, &div, 
+			&container, &style, &len);
+			
+		unsigned char[] text =
+			"Welcome to Lexikonarium!\n\n"
+			"License\n\n";
+		textToContainer(
+			document, &div, text,
+			std::str::CString::length(text, 0));
+		textToContainer(
+			document, &div, getLicense(),
+			std::str::CString::length(getLicense(), 0));
+			
+		main->body.replaceChild(&container,
+			&main->menuContainer);
 	}
 	
-	static void onClickOnAdd(
+	static void onClickAdd(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -660,7 +666,7 @@ class Main {
 		}
 	}
 
-	static void onClickOnAddFind(
+	static void onClickAddFind(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -678,7 +684,7 @@ class Main {
 		
 		addRowClick(document, &div, &textNode,
 			"Cancel", container, &style, 
-			&keyword, &len, onClickOnCancel);
+			&keyword, &len, onClickCancel);
 
 		addRow(document, &div, &textNode,
 			"Dictionary: ", container,
@@ -703,11 +709,11 @@ class Main {
 
 		addRowClick(document, &div, &textNode,
 			"Add", container, &style, 
-			&keyword, &len, onClickOnAdd);
+			&keyword, &len, onClickAdd);
 
 		addRowClick(document, &div, &textNode,
 			"Find", container, &style, 
-			&keyword, &len, onClickOnFind);
+			&keyword, &len, onClickFind);
 		
 		std::html::DivElement::create(
 			document, &div);
@@ -717,12 +723,12 @@ class Main {
 		style.setBorderTopStyle(keyword.set(
 			std::css::BorderStyles::solid));
 		std::dom::MouseEvent::setOnClick(
-			&div, onClickOnEntry);
+			&div, onClickEntry);
 		container->appendChild(&div);
 
 		addRowClick(document, &div, &textNode,
 			"Next", container, &style, 
-			&keyword, &len, onClickOnFindNext);
+			&keyword, &len, onClickFindNext);
 		style.setDisplay(keyword.set(
 			std::css::DisplayTypes::none));
 			
@@ -730,7 +736,7 @@ class Main {
 			container, &main->menuContainer);
 	}
 
-	static void onClickOnButton(
+	static void onClickButton(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -756,7 +762,7 @@ class Main {
 		}
 	}
 	
-	static void onClickOnCancel(
+	static void onClickCancel(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -768,7 +774,46 @@ class Main {
 		main->container.set(nullptr);
 	}
 	
-	static void onClickOnConvert(
+	static void onClickCancelEntry(
+		std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node* container = 
+			&main->currentEntry;
+		
+		std::dom::Node div;
+		std::dom::Node textNode;
+		e->getTarget(&div);
+		div.getNextSibling(&div);
+		div.getLastChild(&textNode);
+		std::dom::Node node;
+		container->getFirstChild(&node);
+		node.getNextSibling(&node);
+		container->insertBefore(&textNode, &node);
+		
+		div.getNextSibling(&div);
+		div.getLastChild(&textNode);
+		node.getNextSibling(&node);
+		container->insertBefore(&textNode, &node);
+		
+		div.getNextSibling(&div);
+		div.getLastChild(&textNode);
+		container->appendChild(&textNode);
+		
+		main->body.replaceChild(
+			&main->container, &main->entryContainer);
+	}
+	
+	static void onClickCancelMenu(std::dom::Event* e,
+		std::ApplicationInstance aexcl app){
+		Main* main = &app.main;
+		std::dom::Node node;
+		main->body.getLastChild(&node);
+		main->body.replaceChild(
+			&main->lookupContainer, &node);
+	}
+	
+	static void onClickConvert(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -785,10 +830,11 @@ class Main {
 		div.getPreviousSibling(&div);
 		div.getPreviousSibling(&div);
 		std::dom::MouseEvent::setOnClick(
-			&div, onClickOnCancel);
+			&div, onClickCancel);
 		std::css::Declaration style;
 		std::css::Keyword keyword;
 		main->menuContainer.getLastChild(&div);
+		div.getPreviousSibling(&div);
 		div.getPreviousSibling(&div);
 		std::html::Element::getStyle(
 			&div, &style);
@@ -806,7 +852,7 @@ class Main {
 		style.setDisplay(&keyword);
 	}
 	
-	static void onClickOnDelete(
+	static void onClickDelete(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -902,17 +948,19 @@ class Main {
 			&main->container, &main->entryContainer);
 	}
 	
-	static void onClickOnDoLoad(
+	static void onClickDoLoad(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
-		main->onLog(LogTypes::load);
-		app.fileSystem.openFile(
-			main->loadSavePath.data, onLoadFile,
-			std::fs::OpenFileModes::readBinary);
+		if (main->loadSavePath.length != 1){
+			main->onLog(LogTypes::load);
+			app.fileSystem.openFile(
+				main->loadSavePath.data, onLoadFile,
+				std::fs::OpenFileModes::readBinary);
+		}
 	}
 	
-	static void onClickOnDoSave(
+	static void onClickDoSave(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -922,7 +970,7 @@ class Main {
 			std::fs::OpenFileModes::writeBinary);
 	}
 	
-	static void onClickOnEdit(
+	static void onClickEdit(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -940,11 +988,11 @@ class Main {
 			
 		addRowClick(document, &div, &textNode,
 			"Cancel", container, &style, 
-			&keyword, &len, onClickOnCancel);
+			&keyword, &len, onClickCancel);
 			
 		addRowClick(document, &div, &textNode,
 			"Convert", container, &style, 
-			&keyword, &len, onClickOnConvert);
+			&keyword, &len, onClickConvert);
 			
 		addLog(document, &div, 
 			container, &style, &len);
@@ -956,7 +1004,7 @@ class Main {
 			container, &main->menuContainer);
 	}
 
-	static void onClickOnEntry(
+	static void onClickEntry(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -994,7 +1042,7 @@ class Main {
 				
 			addRowClick(document, &div, &textNode,
 				"Delete", container, &style, 
-				&keyword, &len, onClickOnDelete);
+				&keyword, &len, onClickDelete);
 		}
 		
 		container->getFirstChild(&div);
@@ -1018,14 +1066,14 @@ class Main {
 			container, &main->container);
 	}
 		
-	static void onClickOnFind(
+	static void onClickFind(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		app.main.nextEntry = nullptr;
-		onClickOnFindNext(e, app);
+		onClickFindNext(e, app);
 	}
 		
-	static void onClickOnFindNext(
+	static void onClickFindNext(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -1214,7 +1262,7 @@ class Main {
 		}
 	}
 	
-	static void onClickOnLoad(
+	static void onClickLoad(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -1232,15 +1280,15 @@ class Main {
 		
 		addRowClick(document, &div, &textNode,
 			"Cancel", container, &style, 
-			&keyword, &len, onClickOnCancel);
+			&keyword, &len, onClickCancel);
 		
 		addRowClick(document, &div, &textNode,
 			main->loadSavePath.data, container,
-			&style, &keyword, &len, onClickOnPath);
+			&style, &keyword, &len, onClickPath);
 			
 		addRowClick(document, &div, &textNode,
 			"Load", container, &style, 
-			&keyword, &len, onClickOnDoLoad);
+			&keyword, &len, onClickDoLoad);
 		
 		addLog(document, &div, 
 			container, &style, &len);
@@ -1252,7 +1300,7 @@ class Main {
 			container, &main->menuContainer);
 	}
 	
-	static void onClickOnPath(
+	static void onClickPath(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -1262,7 +1310,7 @@ class Main {
 			onChangePath, true);
 	}
 	
-	static void onClickOnSave(
+	static void onClickSave(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -1280,11 +1328,11 @@ class Main {
 		
 		addRowClick(document, &div, &node,
 			"Cancel", container, &style, 
-			&keyword, &len, onClickOnCancel);
+			&keyword, &len, onClickCancel);
 		
 		addRowClick(document, &div, &node,
 			main->loadSavePath.data, container,
-			&style, &keyword, &len, onClickOnPath);
+			&style, &keyword, &len, onClickPath);
 			
 		addRow(document, &div, &node,
 			"Comment:", container, &style, 
@@ -1301,7 +1349,7 @@ class Main {
 			
 		addRowClick(document, &div, &node,
 			"Save", container, &style, 
-			&keyword, &len, onClickOnDoSave);
+			&keyword, &len, onClickDoSave);
 			
 		addLog(document, &div, 
 			container, &style, &len);
@@ -1313,7 +1361,7 @@ class Main {
 			container, &main->menuContainer);
 	}
 	
-	static void onClickOnSaveSettings(
+	static void onClickSaveSettings(
 		std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
@@ -1345,7 +1393,7 @@ class Main {
 		container->set(nullptr);
 	}
 	
-	static void onClickOnSettings(std::dom::Event* e,
+	static void onClickSettings(std::dom::Event* e,
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
 		std::dom::Node* document = &main->document;
@@ -1362,7 +1410,7 @@ class Main {
 
 		addRowClick(document, &div, &node,
 			"Save", container, &style, 
-			&keyword, &len, onClickOnSaveSettings);
+			&keyword, &len, onClickSaveSettings);
 			
 		addRow(document, &div, &node,
 			"Buttons: ", container, &style, 
@@ -1597,6 +1645,7 @@ class Main {
 			std::css::Keyword keyword;
 			main->menuContainer.getLastChild(&div);
 			div.getPreviousSibling(&div);
+			div.getPreviousSibling(&div);
 			std::html::Element::getStyle(
 				&div, &style);
 			style.setDisplay(keyword.set(
@@ -1647,13 +1696,13 @@ class Main {
 		}
 		div.getPreviousSibling(&div);
 		std::dom::MouseEvent::setOnClick(
-			&div, onClickOnDoLoad);
+			&div, onClickDoLoad);
 		div.getPreviousSibling(&div);
 		std::dom::MouseEvent::setOnClick(
-			&div, onClickOnPath);
+			&div, onClickPath);
 		div.getPreviousSibling(&div);
 		std::dom::MouseEvent::setOnClick(
-			&div, onClickOnCancel);
+			&div, onClickCancel);
 	}
 	
 	void onLog(unsigned char type){
@@ -1918,14 +1967,14 @@ class Main {
 			std::str::CString::length(text, 0));
 		div.getPreviousSibling(&div);
 		std::dom::MouseEvent::setOnClick(
-			&div, onClickOnDoSave);
+			&div, onClickDoSave);
 		div.getPreviousSibling(&div);
 		div.getPreviousSibling(&div);
 		std::dom::MouseEvent::setOnClick(
-			&div, onClickOnPath);
+			&div, onClickPath);
 		div.getPreviousSibling(&div);
 		std::dom::MouseEvent::setOnClick(
-			&div, onClickOnCancel);
+			&div, onClickCancel);
 	}
 	
 	static void rangeToString(std::str::DString* string,
@@ -1990,7 +2039,7 @@ class Main {
 		std::css::Declaration style;
 		std::css::Short len;
 		unsigned int height = 
-			(appWindow.getInnerHeight() >> 1) - 50;
+			(appWindow.getInnerHeight() >> 1) - 60;
 		std::html::Element::getStyle(
 			&meaningsContainer, &style);
 		style.setHeight(len.set(
@@ -2127,30 +2176,40 @@ class Main {
 		
 		std::html::DivElement::create(
 			&document, &lookupContainer);
+		
 		std::html::Element::getStyle(
 			&lookupContainer, &style);
 		style.setPadding(len.set(
 			0, std::css::Units::px));
 		style.setMargin(&len);
-			
+		
+		addRow(&document, &div, &textNode,
+			"Meanings:", &lookupContainer,
+			&style, &keyword, &len);
+		createContainerStyle(
+			&div, &style, &keyword, &len);
+		
 		std::html::DivElement::create(
 			&document, &meaningsContainer);
 		std::html::Element::getStyle(
 			&meaningsContainer, &style);
 		style.setOverflow(keyword.set(
 			std::css::OverflowTypes::auto));
-		unsigned char[] text =
-			"Welcome to Lexikonarium!\n\n"
-			"License\n\n";
-		textToContainer(
-			&document, &meaningsContainer, text,
-			std::str::CString::length(text, 0));
-		textToContainer(
-			&document, &meaningsContainer, getLicense(),
-			std::str::CString::length(getLicense(), 0));
 		lookupContainer.appendChild(
 			&meaningsContainer);
-			
+		
+		addRow(&document, &div, &textNode,
+			"Text:", &lookupContainer,
+			&style, &keyword, &len);
+		createContainerStyle(
+			&div, &style, &keyword, &len);
+		std::html::Element::getStyle(
+			&div, &style);
+		style.setBorderTopWidth(len.set(
+			1, std::css::Units::px));
+		style.setBorderTopStyle(keyword.set(
+			std::css::BorderStyles::solid));
+		
 		std::html::DivElement::create(
 			&document, &textContainer);
 		std::html::Element::getStyle(
@@ -2188,7 +2247,7 @@ class Main {
 		addButton(&document, &textNode,
 			"Menu", 0, 4, &buttonsContainer);
 		std::dom::MouseEvent::setOnClick(
-			&buttonsContainer, onClickOnButton);
+			&buttonsContainer, onClickButton);
 		lookupContainer.appendChild(
 			&buttonsContainer);
 
@@ -2197,29 +2256,33 @@ class Main {
 		
 		addRowClick(&document, &div, &textNode,
 			"Cancel", &menuContainer, &style, 
-			&keyword, &len, onClickCancel);
+			&keyword, &len, onClickCancelMenu);
 		
 		addRowClick(&document, &div, &textNode,
 			"Add/Find", &menuContainer, &style, 
-			&keyword, &len, onClickOnAddFind);
+			&keyword, &len, onClickAddFind);
 			
 		addRowClick(&document, &div, &textNode,
 			"Load", &menuContainer, &style, 
-			&keyword, &len, onClickOnLoad);
+			&keyword, &len, onClickLoad);
 			
 		addRowClick(&document, &div, &textNode,
 			"Save", &menuContainer, &style, 
-			&keyword, &len, onClickOnSave);
+			&keyword, &len, onClickSave);
 		
 		addRowClick(&document, &div, &textNode,
 			"Edit", &menuContainer, &style, 
-			&keyword, &len, onClickOnEdit);
+			&keyword, &len, onClickEdit);
 		style.setDisplay(keyword.set(
 			std::css::DisplayTypes::none));
 
 		addRowClick(&document, &div, &textNode,
 			"Settings", &menuContainer, &style, 
-			&keyword, &len, onClickOnSettings);
+			&keyword, &len, onClickSettings);
+			
+		addRowClick(&document, &div, &textNode,
+			"About", &menuContainer, &style, 
+			&keyword, &len, onClickAbout);
 		
 		setTextHeight();
 		appWindow.setOnResize(onResize);
@@ -2229,11 +2292,12 @@ class Main {
 		style.setMargin(len.set(
 			0, std::css::Units::px));
 		style.setPadding(&len);
-		body.appendChild(&lookupContainer);
+		body.appendChild(&menuContainer);
 		
 		longestExpression = 0;
-		
 		loadSavePath.set("/", 0, 1);
+		
+		onClickAbout(nullptr, app);
 	}
 
 	void main(std::ApplicationInstance aexcl app){

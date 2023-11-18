@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022-2023 Lexikonarium contributors
+Copyright (c) 2023 Lexikonarium contributors
 
 Redistribution and use in source and binary forms,
 with or without modification, are permitted
@@ -67,80 +67,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 */
-class Dictionary {
-
-	Entry* entries;
-	unsigned int id;
-	std::str::String name;
-	std::ds::BalBinTree tree;
-
-	static unsigned char compare(
-		void* element, void* insert){
-		return compareName(element, 
-			&(Dictionary*)insert->name);
-	}
-
-	static unsigned char compareName(
-		void* element, void* find){
-		std::str::Compare cmp;
-		cmp.compare = std::str::Compare::rangeCI;
-		unsigned char compare = (Dictionary*)
-			element->name.compareString(
-				(std::str::String*)find, &cmp);
-		if (compare == std::Compare::equal){
-			compare = (Dictionary*)
-				element->name.compareString(
-					(std::str::String*)find, nullptr);
-		}
-		return compare;
-	}
-
-	static unsigned char compareFind(
-		void* element, void* find){
-		std::str::String* elementName = 
-			&(Dictionary*)element->name;
-		std::str::String* findName = 
-			(std::str::String*)find;
-		std::str::Compare cmp;
-		cmp.compare = std::str::Compare::rangeCI;
-		unsigned char compare = 
-			std::str::CString::substartsRange(
-				elementName->data, 0, elementName->length,
-				findName->data, 0, findName->length, &cmp);
-		if (compare == std::Compare::equal)
-			{compare = std::Compare::greater;}
-		return compare;
-	}
-	
-	static unsigned char compareId(
-		void* element, void* find){
-		return std::val::Uint::compare(
-			(Dictionary*)element->id,
-			*(unsigned int*)find);
-	}
-	
-	static void erase(void* dictionary){
-		delete (Dictionary*)dictionary;
-	}
-	
-	static void* getElement(void* main,
-		unsigned int i){
-		Dictionary* dictionary = new Dictionary;
-		dictionary->entries = nullptr;
-		dictionary->id = i;
-		std::ds::Buffer* buffer = 
-			&(Main*)main->buffer;
-		i = 12 + i * 4;
-		unsigned int j = buffer->getU32LE(i);
-		unsigned int len = buffer->getU32LE(i + 4) - j;
-		buffer->getU8s(j, dictionary->
-			name.create(len), 0, len);
-		return dictionary;
-	}
-	
-	static std::ds::BalBinTree* getTree(
-		void* dictionary){
-		return &(Dictionary*)dictionary->tree;
-	}
+class Compile : std::cmpl::Default {
 
 }
