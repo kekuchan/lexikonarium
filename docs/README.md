@@ -23,8 +23,8 @@ to them in smaller parts.
 
 # Tutorial
 
-To access the menu, tap or click the "Menu" button.
-Choose "Add/Find", and type "Greek" for the 
+To access the menu, tap or click the top "Menu" 
+bar. Choose "Add/Find", and type "Greek" for the 
 dictionary, "lexiko" for the expression and 
 "dictionary" for the meaning, and choose "Add".
 Add another by typing "Latin" for the dictionary,
@@ -68,7 +68,7 @@ Read [/docs/CONTRIBUTE.md](CONTRIBUTE.md).
 
 # Software license
 
-Copyright (c) 2022 Lexikonarium contributors
+Copyright (c) 2022-2023 Lexikonarium contributors
 
 Redistribution and use in source and binary forms,
 with or without modification, are permitted
@@ -138,7 +138,7 @@ SUCH DAMAGE.
 
 # Documentation license
 
-Copyright (c) 2022 Lexikonarium contributors
+Copyright (c) 2022-2023 Lexikonarium contributors
 
 Redistribution and use in source and binary forms,
 with or without modification, are permitted

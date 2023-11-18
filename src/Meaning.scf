@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Lexikonarium contributors
+Copyright (c) 2022-2023 Lexikonarium contributors
 
 Redistribution and use in source and binary forms,
 with or without modification, are permitted
@@ -114,7 +114,7 @@ class Meaning {
 	
 	static unsigned char compareId(
 		void* element, void* find){
-		return std::arr::Uint::compareValue(
+		return std::val::Uint::compare(
 			(Meaning*)element->id,
 			*(unsigned int*)find);
 	}
