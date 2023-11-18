@@ -1,6 +1,6 @@
 # Software license
 
-Copyright (c) 2022 Lexikonarium contributors
+Copyright (c) 2022-2023 Lexikonarium contributors
 
 Redistribution and use in source and binary forms,
 with or without modification, are permitted
@@ -70,7 +70,7 @@ SUCH DAMAGE.
 
 # Documentation license
 
-Copyright (c) 2022 Lexikonarium contributors
+Copyright (c) 2022-2023 Lexikonarium contributors
 
 Redistribution and use in source and binary forms,
 with or without modification, are permitted
