@@ -64,11 +64,11 @@ in the ".laf" file. To exit the menu, tap or click
 
 # Change logs 
 
-[/docs/log/2023.md](2023).
+[2023](/docs/log/2023).
 
 # Contribute
 
-Read [/docs/CONTRIBUTE.md](CONTRIBUTE.md).
+Read [CONTRIBUTE.md](/docs/CONTRIBUTE.md).
 
 # Software license
 
