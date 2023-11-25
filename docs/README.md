@@ -62,6 +62,10 @@ in the ".laf" file. To exit the menu, tap or click
 "Edit" and "Convert". To exit the menu, tap or click 
 "Cancel".
 
+# Change logs 
+
+[/docs/log/2023.md](2023).
+
 # Contribute
 
 Read [/docs/CONTRIBUTE.md](CONTRIBUTE.md).
@@ -208,4 +212,4 @@ SUCH DAMAGE.
 
 Includes text using the same license,
 from the SWARMBJECT development environment:
-Copyright (c) 2021-2022 SWARMBJECT contributors
+Copyright (c) 2021-2023 SWARMBJECT contributors
