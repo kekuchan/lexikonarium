@@ -64,7 +64,7 @@ in the ".laf" file. To exit the menu, tap or click
 
 # Change logs 
 
-[2023](/docs/log/2023).
+[2023](/docs/log/2023.md).
 
 # Contribute
 
