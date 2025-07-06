@@ -40,27 +40,34 @@ some text containing the words "lexiko" or
 the first letter of these words, their meaning is 
 looked up and displayed above.
 
-Save the dictionaries in the menu with "Save", "/",
-"/" (or choose another path), "New file", type in
-some name ending with ".laf" (Lexikonarium archive 
-file), choose "Create", tap or click on the created 
-".laf" file, and choose "Select". Optionally type in
-some comment, and choose "Save". Creating a backup 
-as a safety measure is done with choosing the saved 
-path, then the ".laf" file, and "Download". To exit 
-the menu, tap or click "Cancel".
+Save the dictionaries in the menu with "Save", 
+choose a file system type like "idb://" (permanent 
+storage in the browser, unless it gets cleared so be 
+sure to make backups as detailed below). From now on, 
+this tutorial will shorthand "idb://" as a leading 
+"/" for simplicity purposes (though in the 
+application it will still be written out fully). 
+Tap or click "/", (or choose another path), 
+"New file", type in some name ending with ".laf" 
+(Lexikonarium archive file), choose "Create", 
+tap or click on the created ".laf" file, and 
+choose "Select". Optionally type in some comment, 
+and choose "Save". Creating a backup as a 
+safety measure is done with choosing the saved 
+path, then the ".laf" file, and "Download". 
+To exit the menu, tap or click "Cancel".
 
 To load a saved ".laf" file, choose in the menu 
-"Load", "/", tap or click on the ".laf" file (or 
-upload a backup file before that by choosing the 
+"Load", "/", tap or click on the ".laf" file 
+(or upload a backup file before that by choosing the 
 folder path and "Upload file"), then "Select" and 
 "Load". This overwrites any of the currently used 
 dictionaries, expressions and meanings with those 
 in the ".laf" file. To exit the menu, tap or click 
 "Cancel". If editing is needed, then the loaded 
 ".laf" file has to be converted in the menu with 
-"Edit" and "Convert". To exit the menu, tap or click 
-"Cancel".
+"Edit" and "Convert". To exit the menu, tap or 
+click "Cancel".
 
 # Change logs 
 
@@ -72,7 +79,8 @@ Read [CONTRIBUTE.md](/docs/CONTRIBUTE.md).
 
 # Software license
 
-Copyright (c) 2022-2023 Lexikonarium contributors
+Copyright (c) 2022-2023, 2025 
+Lexikonarium contributors
 
 Redistribution and use in source and binary forms,
 with or without modification, are permitted
@@ -142,7 +150,8 @@ SUCH DAMAGE.
 
 # Documentation license
 
-Copyright (c) 2022-2023 Lexikonarium contributors
+Copyright (c) 2022-2023, 2025 
+Lexikonarium contributors
 
 Redistribution and use in source and binary forms,
 with or without modification, are permitted
@@ -212,4 +221,4 @@ SUCH DAMAGE.
 
 Includes text using the same license,
 from the SWARMBJECT development environment:
-Copyright (c) 2021-2023 SWARMBJECT contributors
+Copyright (c) 2021-2025 SWARMBJECT contributors
