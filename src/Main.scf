@@ -1,5 +1,6 @@
 /*
-Copyright (c) 2022-2023 Lexikonarium contributors
+Copyright (c) 2022-2023, 2025
+Lexikonarium contributors
 
 Redistribution and use in source and binary forms,
 with or without modification, are permitted
@@ -69,7 +70,7 @@ SUCH DAMAGE.
 
 Includes code using the same license,
 from the SWARMBJECT development environment:
-Copyright (c) 2021-2023 SWARMBJECT contributors
+Copyright (c) 2021-2025 SWARMBJECT contributors
 */
 class Main {
 
@@ -90,6 +91,8 @@ class Main {
 	Expression* expressions;
 	Meaning* meanings;
 	
+	std::fs::Entry file;
+	std::ds::BufferView parameters;
 	std::ds::Buffer buffer;
 	/*Since the indices start from 1, these 
 	actually point before the first element.*/
@@ -359,77 +362,78 @@ class Main {
 
 	static unsigned char[] getLicense(){
 		return
-			"Copyright (c) 2022-2023 Lexikonarium contributors\n"
+			"Copyright (c) 2022-2023, 2025\n"
+			"Lexikonarium contributors\n"
 			"\n"
-			"Redistribution and use in source and binary forms, "
-			"with or without modification, are permitted "
+			"Redistribution and use in source and binary forms,\n"
+			"with or without modification, are permitted\n"
 			"provided that the following conditions are met:\n"
 			"\n"
-			"1. Redistributions of source code must "
-			"retain the above copyright notice, this list "
+			"1. Redistributions of source code must\n"
+			"retain the above copyright notice, this list\n"
 			"of conditions and the following disclaimer.\n"
 			"\n"
-			"2. Redistributions in binary form must "
-			"reproduce the above copyright notice, "
-			"this list of conditions and the following "
-			"disclaimer in the documentation and/or other "
+			"2. Redistributions in binary form must\n"
+			"reproduce the above copyright notice,\n"
+			"this list of conditions and the following\n"
+			"disclaimer in the documentation and/or other\n"
 			"materials provided with the distribution.\n"
 			"\n"
-			"Subject to the terms and conditions of this "
-			"license, each copyright holder and contributor "
-			"hereby grants to those receiving rights under this "
-			"license a perpetual, worldwide, non-exclusive, "
-			"no-charge, royalty-free, irrevocable (except for "
-			"failure to satisfy the conditions of this license) "
-			"patent license to make, have made, use, offer to "
-			"sell, sell, import, and otherwise transfer this "
-			"software, where such license applies only to "
-			"those patent claims, already acquired or hereafter "
-			"acquired, licensable by such copyright holder or "
+			"Subject to the terms and conditions of this\n"
+			"license, each copyright holder and contributor\n"
+			"hereby grants to those receiving rights under this\n"
+			"license a perpetual, worldwide, non-exclusive,\n"
+			"no-charge, royalty-free, irrevocable (except for\n"
+			"failure to satisfy the conditions of this license)\n"
+			"patent license to make, have made, use, offer to\n"
+			"sell, sell, import, and otherwise transfer this\n"
+			"software, where such license applies only to\n"
+			"those patent claims, already acquired or hereafter\n"
+			"acquired, licensable by such copyright holder or\n"
 			"contributor that are necessarily infringed by:\n"
 			"\n"
-			"(a) their Contribution(s) (the licensed "
-			"copyrights of copyright holders and "
-			"non-copyrightable additions of contributors, "
+			"(a) their Contribution(s) (the licensed\n"
+			"copyrights of copyright holders and\n"
+			"non-copyrightable additions of contributors,\n"
 			"in source or binary form) alone; or\n"
 			"\n"
-			"(b) combination of their Contribution(s) "
-			"with the work of authorship to which such "
-			"Contribution(s) was added by such copyright "
-			"holder or contributor, if, at the time the "
-			"Contribution is added, such addition causes "
-			"such combination to be necessarily infringed. "
-			"The patent license shall not apply to any other "
+			"(b) combination of their Contribution(s)\n"
+			"with the work of authorship to which such\n"
+			"Contribution(s) was added by such copyright\n"
+			"holder or contributor, if, at the time the\n"
+			"Contribution is added, such addition causes\n"
+			"such combination to be necessarily infringed.\n"
+			"The patent license shall not apply to any other\n"
 			"combinations which include the Contribution.\n"
 			"\n"
-			"Except as expressly stated above, no rights or "
-			"licenses from any copyright holder or contributor "
-			"is granted under this license, whether expressly, "
+			"Except as expressly stated above, no rights or\n"
+			"licenses from any copyright holder or contributor\n"
+			"is granted under this license, whether expressly,\n"
 			"by implication, estoppel or otherwise.\n"
 			"\n"
 			"DISCLAIMER\n"
 			"\n"
-			"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS "
-			"AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR "
-			"IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, "
-			"THE IMPLIED WARRANTIES OF MERCHANTABILITY AND "
-			"FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. "
-			"IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR "
-			"CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, "
-			"INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL "
-			"DAMAGES (INCLUDING, BUT NOT LIMITED TO, "
-			"PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; "
-			"LOSS OF USE, DATA, OR PROFITS; OR BUSINESS "
-			"INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF "
-			"LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, "
-			"OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) "
-			"ARISING IN ANY WAY OUT OF THE USE OF THIS "
-			"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF "
+			"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS\n"
+			"AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR\n"
+			"IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,\n"
+			"THE IMPLIED WARRANTIES OF MERCHANTABILITY AND\n"
+			"FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n"
+			"IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR\n"
+			"CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,\n"
+			"INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\n"
+			"DAMAGES (INCLUDING, BUT NOT LIMITED TO,\n"
+			"PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\n"
+			"LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\n"
+			"INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF\n"
+			"LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\n"
+			"OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n"
+			"ARISING IN ANY WAY OUT OF THE USE OF THIS\n"
+			"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF\n"
 			"SUCH DAMAGE.\n"
 			"\n"
 			"Includes code using the same license,\n"
 			"from the SWARMBJECT development environment:\n"
-			"Copyright (c) 2021-2023 SWARMBJECT contributors\n";
+			"Copyright (c) 2021-2025 SWARMBJECT contributors\n";
 	}
 	
 	static void getName(
@@ -954,9 +958,14 @@ class Main {
 		Main* main = &app.main;
 		if (main->loadSavePath.length != 1){
 			main->onLog(LogTypes::load);
-			app.fileSystem.openFile(
-				main->loadSavePath.data, onLoadFile,
-				std::fs::OpenFileModes::readBinary);
+			main->parameters.clear();
+			main->file.set(
+				main->loadSavePath.data, 0, 
+				main->loadSavePath.length, 
+				std::fs::FileModes::read, 
+				onLoadFile, std::val::Uint::maximum, 
+				&main->parameters);
+			main->file.open(app);
 		}
 	}
 	
@@ -965,9 +974,205 @@ class Main {
 		std::ApplicationInstance aexcl app){
 		Main* main = &app.main;
 		main->onLog(LogTypes::save);
-		app.fileSystem.openFile(
-			main->loadSavePath.data, onSaveFile,
-			std::fs::OpenFileModes::writeBinary);
+		/*
+			version: 4
+			dictionaries size: 4
+			meanings size: 4
+			expressions size: 4
+			dictionaries: 
+				name start: 4
+			meanings: 
+				name start: 4
+			expressions: 
+				name start: 4
+				entries start: 4
+			expressions end: 8
+			entries: 
+				dictionary index: 4
+					if more than 1 dictionary 
+				meaning index: 4
+			dictionaries: 
+				name 
+			meanings: 
+				name 
+			expressions: 
+				name 
+			comment 
+			
+			Indices start from 1, so 0 can be 
+			used to mean like sorted, when 
+			converting to an editable format, 
+			though it is currently not used.
+		*/
+		std::dom::Node div;
+		std::dom::Node node;
+		main->container.getLastChild(&div);
+		div.getPreviousSibling(&node);
+		node.getPreviousSibling(&node);
+		node.getLastChild(&node);
+		std::str::DString* comment =
+			&main->comment;
+		comment->clear();
+		std::html::InputElement::getValueDString(
+			&node, comment);
+		
+		unsigned int i = 0;
+		unsigned int dictionaries = 0;
+		Dictionary* dictionary = (Dictionary*)(
+			std::ds::BalBinTree::first(
+				main->dictionaries,
+				Dictionary::getTree));
+		while (dictionary != nullptr){
+			dictionaries = dictionaries + 1;
+			dictionary->id = dictionaries;
+			i = i + dictionary->name.length;
+			dictionary = (Dictionary*)(
+				std::ds::BalBinTree::next(
+					dictionary, Dictionary::getTree,
+					Dictionary::compare));
+		}
+		unsigned int meanings = 0;
+		Meaning* meaning = (Meaning*)(
+			std::ds::BalBinTree::first(
+				main->meanings, Meaning::getTree));
+		while (meaning != nullptr){
+			meanings = meanings + 1;
+			meaning->id = meanings;
+			i = i + meaning->name.length;
+			meaning = (Meaning*)(
+				std::ds::BalBinTree::next(
+					meaning, Meaning::getTree,
+					Meaning::compare));
+		}
+		unsigned int expressions = 0;
+		unsigned int len = 0;
+		Expression* expression = (Expression*)(
+			std::ds::BalBinTree::first(
+				main->expressions,
+				Expression::getTree));
+		while (expression != nullptr){
+			expressions = expressions + 1;
+			i = i + expression->name.length;
+			Entry* entry = expression->entries;
+			while (entry != nullptr){
+				len = len + 1;
+				entry = (Entry*)(entry->expressionNext.next);
+			}
+			expression = (Expression*)(
+				std::ds::BalBinTree::next(
+					expression, Expression::getTree,
+					Expression::compare));
+		}
+		unsigned int entries = 24 + 
+			4 * (dictionaries + meanings) +
+			8 * expressions;
+		unsigned int j;
+		if (dictionaries != 1){
+			j = entries + len * 8;
+		} else {
+			j = entries + len * 4;
+		}
+		std::ds::Buffer* buffer = 
+			&main->buffer;
+		buffer->create(i + j + comment->length);
+		buffer->setU32LE(0, 0);
+		buffer->setU32LE(4, dictionaries);
+		buffer->setU32LE(8, meanings);
+		buffer->setU32LE(12, expressions);
+		i = 16;
+		dictionary = (Dictionary*)(
+			std::ds::BalBinTree::first(
+				main->dictionaries,
+				Dictionary::getTree));
+		while (dictionary != nullptr){
+			buffer->setU32LE(i, j);
+			i = i + 4;
+			len = dictionary->name.length;
+			buffer->setU8s(j, dictionary->
+				name.data, 0, len);
+			j = j + len;
+			dictionary = (Dictionary*)(
+				std::ds::BalBinTree::next(
+					dictionary, Dictionary::getTree,
+					Dictionary::compare));
+		}
+		meaning = (Meaning*)(
+			std::ds::BalBinTree::first(
+				main->meanings, Meaning::getTree));
+		while (meaning != nullptr){
+			buffer->setU32LE(i, j);
+			i = i + 4;
+			len = meaning->name.length;
+			buffer->setU8s(j, meaning->
+				name.data, 0, len);
+			j = j + len;
+			meaning = (Meaning*)(
+				std::ds::BalBinTree::next(
+					meaning, Meaning::getTree,
+					Meaning::compare));
+		}
+		expression = (Expression*)(
+			std::ds::BalBinTree::first(
+				main->expressions, Expression::getTree));
+		if (dictionaries != 1){
+			while (expression != nullptr){
+				buffer->setU32LE(i, j);
+				buffer->setU32LE(i + 4, entries);
+				i = i + 8;
+				len = expression->name.length;
+				buffer->setU8s(j, expression->
+					name.data, 0, len);
+				j = j + len;
+				Entry* entry = expression->entries;
+				while (entry != nullptr){
+					buffer->setU32LE(entries, 
+						entry->dictionary->id);
+					buffer->setU32LE(entries + 4, 
+						entry->meaning->id);
+					entries = entries + 8;
+					entry = (Entry*)(entry->expressionNext.next);
+				}
+				expression = (Expression*)(
+					std::ds::BalBinTree::next(
+						expression, Expression::getTree,
+						Expression::compare));
+			}
+		} else {
+			while (expression != nullptr){
+				buffer->setU32LE(i, j);
+				buffer->setU32LE(i + 4, entries);
+				i = i + 8;
+				len = expression->name.length;
+				buffer->setU8s(j, expression->
+					name.data, 0, len);
+				j = j + len;
+				Entry* entry = expression->entries;
+				while (entry != nullptr){
+					buffer->setU32LE(entries, 
+						entry->meaning->id);
+					entries = entries + 4;
+					entry = (Entry*)(entry->expressionNext.next);
+				}
+				expression = (Expression*)(
+					std::ds::BalBinTree::next(
+						expression, Expression::getTree,
+						Expression::compare));
+			}
+		}
+		buffer->setU32LE(i, j);
+		buffer->setU32LE(i + 4, entries);
+		buffer->setU8s(j, comment->data, 
+			0, comment->length);
+		
+		main->parameters.data = buffer->data;
+		main->parameters.size = buffer->size;
+		main->file.set(
+			main->loadSavePath.data, 0, 
+			main->loadSavePath.length, 
+			std::fs::FileModes::write, 
+			onSaveFile, 0, 
+			&main->parameters);
+		main->file.open(app);
 	}
 	
 	static void onClickEdit(
@@ -1623,8 +1828,8 @@ class Main {
 	
 	static void onLoadFile(
 		std::ApplicationInstance aexcl app,
-		std::fs::File* file){
-		std::dom::Node div;
+		std::fs::Entry* file,
+		unsigned int error){
 		Main* main = &app.main;
 		std::ds::Buffer* buffer = &main->buffer;
 		if (buffer->size == 0){
@@ -1643,6 +1848,7 @@ class Main {
 			
 			std::css::Declaration style;
 			std::css::Keyword keyword;
+			std::dom::Node div;
 			main->menuContainer.getLastChild(&div);
 			div.getPreviousSibling(&div);
 			div.getPreviousSibling(&div);
@@ -1662,9 +1868,28 @@ class Main {
 			style.setDisplay(&keyword);
 		}
 		
-		unsigned int size = file->getSize();
-		buffer->create(size);
-		file->read(buffer->data, 0, size);
+		main->parameters.data = 
+			app.main.buffer.create(file->cursor);
+		main->parameters.size = file->cursor;
+		file->callback = onLoadFileRead;
+		file->cursor = 0;
+		file->read(app);
+	}
+	
+	static void onLoadFileRead(
+		std::ApplicationInstance aexcl app,
+		std::fs::Entry* file,
+		unsigned int error){
+		file->callback = onLoadFileClosed;
+		file->close(app);
+	}
+	
+	static void onLoadFileClosed(
+		std::ApplicationInstance aexcl app,
+		std::fs::Entry* file,
+		unsigned int error){
+		Main* main = &app.main;
+		std::ds::Buffer* buffer = &main->buffer;
 		main->meaning = 12 + 
 			4 * buffer->getU32LE(4);
 		main->expression = main->meaning +
@@ -1674,19 +1899,21 @@ class Main {
 				8 * buffer->getU32LE(12) + 8);
 		
 		std::dom::Node* document = &main->document;
+		std::dom::Node div;
 		main->container.getLastChild(&div);
 		std::dom::Node node;
 		unsigned char[] text = "Loaded";
 		addText(document, &div, 
 			&node, text,
 			std::str::CString::length(text, 0));
-		if (comment < size){
+		if (comment < buffer->size){
 			text = "The file has a comment: \"";
 			addText(document, &div, 
 				&node, text,
 				std::str::CString::length(text, 0));
 			std::dom::Text::create(document, &node, 
-				buffer->data, comment, size - comment);
+				buffer->data, comment, 
+				buffer->size - comment);
 			div.appendChild(&node);
 			std::html::BrElement::create(
 				document, &node);
@@ -1768,199 +1995,21 @@ class Main {
 	
 	static void onSaveFile(
 		std::ApplicationInstance aexcl app,
-		std::fs::File* file){
-		/*
-			version: 4
-			dictionaries size: 4
-			meanings size: 4
-			expressions size: 4
-			dictionaries: 
-				name start: 4
-			meanings: 
-				name start: 4
-			expressions: 
-				name start: 4
-				entries start: 4
-			expressions end: 8
-			entries: 
-				dictionary index: 4
-					if more than 1 dictionary 
-				meaning index: 4
-			dictionaries: 
-				name 
-			meanings: 
-				name 
-			expressions: 
-				name 
-			comment 
-			
-			Indices start from 1, so 0 can be 
-			used to mean like sorted, when 
-			converting to an editable format, 
-			though it is currently not used.
-		*/
-		
+		std::fs::Entry* file,
+		unsigned int error){
+		file->callback = onSaveFileClosed;
+		file->close(app);
+	}
+	
+	static void onSaveFileClosed(
+		std::ApplicationInstance aexcl app,
+		std::fs::Entry* file,
+		unsigned int error){
 		Main* main = &app.main;
+		main->buffer.clear();
 		std::dom::Node div;
 		std::dom::Node node;
 		main->container.getLastChild(&div);
-		div.getPreviousSibling(&node);
-		node.getPreviousSibling(&node);
-		node.getLastChild(&node);
-		std::str::DString* comment =
-			&main->comment;
-		comment->clear();
-		std::html::InputElement::getValueDString(
-			&node, comment);
-		
-		unsigned int i = 0;
-		unsigned int dictionaries = 0;
-		Dictionary* dictionary = (Dictionary*)(
-			std::ds::BalBinTree::first(
-				main->dictionaries,
-				Dictionary::getTree));
-		while (dictionary != nullptr){
-			dictionaries = dictionaries + 1;
-			dictionary->id = dictionaries;
-			i = i + dictionary->name.length;
-			dictionary = (Dictionary*)(
-				std::ds::BalBinTree::next(
-					dictionary, Dictionary::getTree,
-					Dictionary::compare));
-		}
-		unsigned int meanings = 0;
-		Meaning* meaning = (Meaning*)(
-			std::ds::BalBinTree::first(
-				main->meanings, Meaning::getTree));
-		while (meaning != nullptr){
-			meanings = meanings + 1;
-			meaning->id = meanings;
-			i = i + meaning->name.length;
-			meaning = (Meaning*)(
-				std::ds::BalBinTree::next(
-					meaning, Meaning::getTree,
-					Meaning::compare));
-		}
-		unsigned int expressions = 0;
-		unsigned int len = 0;
-		Expression* expression = (Expression*)(
-			std::ds::BalBinTree::first(
-				main->expressions,
-				Expression::getTree));
-		while (expression != nullptr){
-			expressions = expressions + 1;
-			i = i + expression->name.length;
-			Entry* entry = expression->entries;
-			while (entry != nullptr){
-				len = len + 1;
-				entry = (Entry*)(entry->expressionNext.next);
-			}
-			expression = (Expression*)(
-				std::ds::BalBinTree::next(
-					expression, Expression::getTree,
-					Expression::compare));
-		}
-		unsigned int entries = 24 + 
-			4 * (dictionaries + meanings) +
-			8 * expressions;
-		unsigned int j;
-		if (dictionaries != 1){
-			j = entries + len * 8;
-		} else {
-			j = entries + len * 4;
-		}
-		std::ds::Buffer buffer;
-		buffer.create(i + j + comment->length);
-		buffer.setU32LE(0, 0);
-		buffer.setU32LE(4, dictionaries);
-		buffer.setU32LE(8, meanings);
-		buffer.setU32LE(12, expressions);
-		i = 16;
-		dictionary = (Dictionary*)(
-			std::ds::BalBinTree::first(
-				main->dictionaries,
-				Dictionary::getTree));
-		while (dictionary != nullptr){
-			buffer.setU32LE(i, j);
-			i = i + 4;
-			len = dictionary->name.length;
-			buffer.setU8s(j, dictionary->
-				name.data, 0, len);
-			j = j + len;
-			dictionary = (Dictionary*)(
-				std::ds::BalBinTree::next(
-					dictionary, Dictionary::getTree,
-					Dictionary::compare));
-		}
-		meaning = (Meaning*)(
-			std::ds::BalBinTree::first(
-				main->meanings, Meaning::getTree));
-		while (meaning != nullptr){
-			buffer.setU32LE(i, j);
-			i = i + 4;
-			len = meaning->name.length;
-			buffer.setU8s(j, meaning->
-				name.data, 0, len);
-			j = j + len;
-			meaning = (Meaning*)(
-				std::ds::BalBinTree::next(
-					meaning, Meaning::getTree,
-					Meaning::compare));
-		}
-		expression = (Expression*)(
-			std::ds::BalBinTree::first(
-				main->expressions, Expression::getTree));
-		if (dictionaries != 1){
-			while (expression != nullptr){
-				buffer.setU32LE(i, j);
-				buffer.setU32LE(i + 4, entries);
-				i = i + 8;
-				len = expression->name.length;
-				buffer.setU8s(j, expression->
-					name.data, 0, len);
-				j = j + len;
-				Entry* entry = expression->entries;
-				while (entry != nullptr){
-					buffer.setU32LE(entries, 
-						entry->dictionary->id);
-					buffer.setU32LE(entries + 4, 
-						entry->meaning->id);
-					entries = entries + 8;
-					entry = (Entry*)(entry->expressionNext.next);
-				}
-				expression = (Expression*)(
-					std::ds::BalBinTree::next(
-						expression, Expression::getTree,
-						Expression::compare));
-			}
-		} else {
-			while (expression != nullptr){
-				buffer.setU32LE(i, j);
-				buffer.setU32LE(i + 4, entries);
-				i = i + 8;
-				len = expression->name.length;
-				buffer.setU8s(j, expression->
-					name.data, 0, len);
-				j = j + len;
-				Entry* entry = expression->entries;
-				while (entry != nullptr){
-					buffer.setU32LE(entries, 
-						entry->meaning->id);
-					entries = entries + 4;
-					entry = (Entry*)(entry->expressionNext.next);
-				}
-				expression = (Expression*)(
-					std::ds::BalBinTree::next(
-						expression, Expression::getTree,
-						Expression::compare));
-			}
-		}
-		buffer.setU32LE(i, j);
-		buffer.setU32LE(i + 4, entries);
-		buffer.setU8s(j, comment->data, 
-			0, comment->length);
-		file->write(buffer.data, 0, buffer.size);
-		
 		unsigned char[] text = "Saved";
 		addText(&main->document, &div, 
 			&node, text, 
@@ -2298,6 +2347,7 @@ class Main {
 		loadSavePath.set("/", 0, 1);
 		
 		onClickAbout(nullptr, app);
+		std::fs::idb::Type::mount(app);
 	}
 
 	void main(std::ApplicationInstance aexcl app){
